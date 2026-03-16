@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useMemo, memo } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { USE_CASE_TABS } from '../constants/tools'
+import { USE_CASE_TABS } from '../../constants/tools'
 
 function ToolPanelItem({ tool, disabled, onClick, isDiscovered, isFavorite, onToggleFavorite, isActive, ai, onHover, onLeave }) {
   const [selectVal, setSelectVal] = useState(tool.options?.[0]?.[0] || '')

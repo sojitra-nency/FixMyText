@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { PERSONAS } from '../constants/tools'
+import { PERSONAS } from '../../constants/tools'
 
 const PERSONA_LIST = Object.entries(PERSONAS).map(([id, data]) => ({ id, ...data }))
 

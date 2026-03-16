@@ -1,8 +1,10 @@
 /**
  * useTheme — manages light/dark mode.
- * CSS class on <body>: body.dark → dark mode colors
+ * Syncs to DB when authenticated, falls back to localStorage.
  */
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
+import { useGetPreferencesQuery, useUpdatePreferencesMutation } from '../store/api/userDataApi';
 
 const MODE_KEY = 'fmx_theme_mode';
 
@@ -18,21 +20,51 @@ export function useTheme(showAlert) {
         return saved;
     });
 
+    const accessToken = useSelector((s) => s.auth.accessToken);
+    const isAuthenticated = !!accessToken;
+    const hydrated = useRef(false);
+
+    const { data: prefs } = useGetPreferencesQuery(undefined, { skip: !isAuthenticated });
+    const [updatePrefs] = useUpdatePreferencesMutation();
+
+    // Hydrate from DB on first fetch
+    useEffect(() => {
+        if (prefs && !hydrated.current) {
+            hydrated.current = true;
+            if (prefs.theme && prefs.theme !== mode) {
+                setModeState(prefs.theme);
+                applyMode(prefs.theme);
+                localStorage.setItem(MODE_KEY, prefs.theme);
+            }
+        }
+    }, [prefs]);
+
+    // Reset hydration on logout
+    useEffect(() => {
+        if (!isAuthenticated) hydrated.current = false;
+    }, [isAuthenticated]);
+
     const toggleMode = useCallback(() => {
         setModeState(prev => {
             const next = prev === 'dark' ? 'light' : 'dark';
             applyMode(next);
             localStorage.setItem(MODE_KEY, next);
+            if (isAuthenticated) {
+                updatePrefs({ theme: next }).unwrap().catch(() => {});
+            }
             showAlert(`${next === 'dark' ? 'Dark' : 'Light'} mode enabled`, 'success');
             return next;
         });
-    }, [showAlert]);
+    }, [showAlert, isAuthenticated, updatePrefs]);
 
     const setMode = useCallback((newMode) => {
         setModeState(newMode);
         applyMode(newMode);
         localStorage.setItem(MODE_KEY, newMode);
-    }, []);
+        if (isAuthenticated) {
+            updatePrefs({ theme: newMode }).unwrap().catch(() => {});
+        }
+    }, [isAuthenticated, updatePrefs]);
 
     useEffect(() => { applyMode(mode); }, [mode]);
 

@@ -1,4 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
+import { useSelector } from 'react-redux'
+import { useGetGamificationQuery, useUpdateGamificationMutation, useUpdatePreferencesMutation, useGetPreferencesQuery } from '../store/api/userDataApi'
 import { TOOLS, ACHIEVEMENTS, QUEST_TEMPLATES, LEVELS } from '../constants/tools'
 
 const STORAGE_KEY = 'fmx_gamification'
@@ -22,9 +24,8 @@ function today() {
 function pickDailyQuest(completed = []) {
   const available = QUEST_TEMPLATES.filter(q => !completed.includes(q.id))
   const pool = available.length > 0 ? available : QUEST_TEMPLATES
-  // Deterministic daily pick — hash the day number for better distribution
   const day = Date.now() / 86400000 | 0
-  const hash = ((day * 2654435761) >>> 0) // Knuth multiplicative hash
+  const hash = ((day * 2654435761) >>> 0)
   return pool[hash % pool.length]
 }
 
@@ -35,6 +36,49 @@ function getLevel(xp) {
     else break
   }
   return lvl
+}
+
+/** Convert API response (flat) to hook state shape (nested). */
+function apiToState(api) {
+  return {
+    persona: null, // persona is in preferences, not gamification
+    themeSkin: null,
+    toolsUsed: api.tools_used || {},
+    discoveredTools: api.discovered_tools || [],
+    totalOps: api.total_ops || 0,
+    totalChars: api.total_chars || 0,
+    xp: api.xp || 0,
+    streak: { current: api.streak_current || 0, lastDate: api.streak_last_date || null },
+    achievements: api.achievements || [],
+    favorites: api.favorites || [],
+    dailyQuest: {
+      id: api.daily_quest_id || null,
+      date: api.daily_quest_date || null,
+      completed: api.daily_quest_completed || false,
+    },
+    savedPipelines: api.saved_pipelines || [],
+    completedQuests: api.completed_quests || [],
+  }
+}
+
+/** Convert hook state (nested) to API payload (flat). */
+function stateToApi(s) {
+  return {
+    xp: s.xp,
+    streak_current: s.streak.current,
+    streak_last_date: s.streak.lastDate,
+    total_ops: s.totalOps,
+    total_chars: s.totalChars,
+    tools_used: s.toolsUsed,
+    discovered_tools: s.discoveredTools,
+    achievements: s.achievements,
+    favorites: s.favorites,
+    saved_pipelines: s.savedPipelines,
+    completed_quests: s.completedQuests,
+    daily_quest_id: s.dailyQuest.id,
+    daily_quest_date: s.dailyQuest.date,
+    daily_quest_completed: s.dailyQuest.completed,
+  }
 }
 
 const DEFAULT_STATE = {
@@ -63,22 +107,58 @@ export default function useGamification() {
   const speedTimestamps = useRef([])
   const [newAchievement, setNewAchievement] = useState(null)
   const [xpGain, setXpGain] = useState(null)
+  const hydrated = useRef(false)
 
-  // Persist to localStorage on state change (debounced to avoid excessive writes)
+  // Auth state from Redux
+  const accessToken = useSelector((s) => s.auth.accessToken)
+  const isAuthenticated = !!accessToken
+
+  // RTK Query — fetch gamification + preferences from DB when authenticated
+  const { data: dbGamification } = useGetGamificationQuery(undefined, { skip: !isAuthenticated })
+  const { data: dbPrefs } = useGetPreferencesQuery(undefined, { skip: !isAuthenticated })
+  const [syncToDb] = useUpdateGamificationMutation()
+  const [syncPrefs] = useUpdatePreferencesMutation()
+
+  // Hydrate from DB on first fetch (merge DB data over localStorage)
+  useEffect(() => {
+    if (dbGamification && !hydrated.current) {
+      hydrated.current = true
+      const dbState = apiToState(dbGamification)
+      setState(prev => {
+        const merged = { ...prev, ...dbState, sessionOps: prev.sessionOps }
+        // Persona/themeSkin come from preferences endpoint
+        if (dbPrefs) {
+          merged.persona = dbPrefs.persona || prev.persona
+          merged.themeSkin = dbPrefs.theme_skin || prev.themeSkin
+        }
+        return merged
+      })
+    }
+  }, [dbGamification, dbPrefs])
+
+  // Reset hydration flag on logout
+  useEffect(() => {
+    if (!isAuthenticated) hydrated.current = false
+  }, [isAuthenticated])
+
+  // Persist to localStorage + DB on state change (debounced)
   useEffect(() => {
     const timer = setTimeout(() => {
       const { sessionOps, ...persistable } = state
       localStorage.setItem(STORAGE_KEY, JSON.stringify(persistable))
+      if (isAuthenticated) {
+        syncToDb(stateToApi(state)).unwrap().catch(() => {})
+      }
     }, 500)
     return () => clearTimeout(timer)
-  }, [state])
+  }, [state, isAuthenticated, syncToDb])
 
   // Check streak on mount
   useEffect(() => {
     setState(prev => {
       const d = today()
       const streak = { ...prev.streak }
-      if (streak.lastDate === d) return prev // Already counted today
+      if (streak.lastDate === d) return prev
       const yesterday = new Date()
       yesterday.setDate(yesterday.getDate() - 1)
       const yStr = yesterday.toISOString().slice(0, 10)
@@ -106,17 +186,13 @@ export default function useGamification() {
   const recordToolUse = useCallback((toolId, charCount = 0) => {
     const now = Date.now()
     speedTimestamps.current.push(now)
-    // Keep only last 60s of timestamps
     speedTimestamps.current = speedTimestamps.current.filter(t => now - t < 60000)
 
     setState(prev => {
       const tool = TOOLS.find(t => t.id === toolId)
       const isNew = !prev.discoveredTools.includes(toolId)
-      const isAi = tool?.tabs?.includes('ai')
-      const isDev = tool?.tabs?.includes('code')
       const firstTab = tool?.tabs?.[0] || 'transform'
 
-      // XP calculation
       let xpEarned = 10
       if (isNew) xpEarned += 25
 
@@ -124,12 +200,10 @@ export default function useGamification() {
       const discoveredTools = isNew ? [...prev.discoveredTools, toolId] : prev.discoveredTools
       const totalOps = prev.totalOps + 1
       const totalChars = prev.totalChars + charCount
-      const xp = prev.xp + xpEarned
       const streak = { ...prev.streak, lastDate: today(), current: prev.streak.current || 1 }
 
       const sessionOps = [...prev.sessionOps, { id: toolId, tab: firstTab, isNew, time: now }]
 
-      // Check daily quest
       let dailyQuest = { ...prev.dailyQuest }
       let completedQuests = [...prev.completedQuests]
       if (!dailyQuest.completed && dailyQuest.id) {
@@ -141,7 +215,6 @@ export default function useGamification() {
         }
       }
 
-      // Build achievement check state
       const translateOpts = TOOLS.find(t => t.id === 'translate')?.options || []
       const langCount = translateOpts.filter(([v]) => toolsUsed['translate'] && prev.discoveredTools.includes('translate')).length
 
@@ -162,7 +235,6 @@ export default function useGamification() {
         earlyBird: hour >= 5 && hour < 7,
       }
 
-      // Check for new achievements
       let achievements = [...prev.achievements]
       let newUnlock = null
       for (const a of ACHIEVEMENTS) {
@@ -173,7 +245,6 @@ export default function useGamification() {
         }
       }
 
-      // Trigger XP animation
       setTimeout(() => setXpGain(xpEarned), 0)
       setTimeout(() => setXpGain(null), 2000)
 
@@ -201,11 +272,17 @@ export default function useGamification() {
 
   const setPersona = useCallback((persona) => {
     setState(prev => ({ ...prev, persona }))
-  }, [])
+    if (isAuthenticated) {
+      syncPrefs({ persona }).unwrap().catch(() => {})
+    }
+  }, [isAuthenticated, syncPrefs])
 
   const setThemeSkin = useCallback((themeSkin) => {
     setState(prev => ({ ...prev, themeSkin }))
-  }, [])
+    if (isAuthenticated) {
+      syncPrefs({ theme_skin: themeSkin }).unwrap().catch(() => {})
+    }
+  }, [isAuthenticated, syncPrefs])
 
   const savePipeline = useCallback((pipeline) => {
     setState(prev => ({
