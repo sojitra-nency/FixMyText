@@ -22,6 +22,7 @@ import usePipeline from '../../hooks/usePipeline'
 import useSmartSuggestions from '../../hooks/useSmartSuggestions'
 import useToolSearch from '../../hooks/useToolSearch'
 import useResize from '../../hooks/useResize'
+import useTrialLimit from '../../hooks/useTrialLimit'
 
 // Components
 import ToolPanel from './ToolPanel'
@@ -134,6 +135,7 @@ export default function TextForm(props) {
     const pipeline = usePipeline()
     const suggestions = useSmartSuggestions(text)
     const search = useToolSearch()
+    const trial = useTrialLimit(props.isAuthenticated)
 
     // Resizable panels
     const splitRef = useRef(null)
@@ -419,6 +421,7 @@ export default function TextForm(props) {
     // ── Execute a tool (called from ToolView's Run button) ──
     const executeToolAction = useCallback((tool) => {
         if (!tool) return
+        if (!trial.checkTrial()) return
         gamification.recordToolUse(tool.id, text.length)
 
         if (tool.type === 'api') {
@@ -439,7 +442,7 @@ export default function TextForm(props) {
             togglePanel(tool.panelId)
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [text, gamification.recordToolUse])
+    }, [text, gamification.recordToolUse, trial.checkTrial])
 
     // ── Unified tool click handler ──────────────────────────
     const handleToolClick = useCallback((tool) => {
@@ -1155,15 +1158,19 @@ export default function TextForm(props) {
                         <span className="tu-settings-item-label">Keyboard Shortcuts</span>
                     </button>
 
-                    {/* Logout */}
-                    {props.isAuthenticated && (
-                        <>
-                            <div className="tu-settings-divider" />
-                            <button className="tu-settings-item tu-settings-item--danger" onClick={() => { setSettingsOpen(false); handleLogout() }}>
-                                <span className="tu-settings-item-icon">⏻</span>
-                                <span className="tu-settings-item-label">Sign Out</span>
-                            </button>
-                        </>
+                    {/* Auth */}
+                    <div className="tu-settings-divider" />
+                    {props.isAuthenticated ? (
+                        <button className="tu-settings-item tu-settings-item--danger" onClick={() => { setSettingsOpen(false); handleLogout() }}>
+                            <span className="tu-settings-item-icon">⏻</span>
+                            <span className="tu-settings-item-label">Sign Out</span>
+                        </button>
+                    ) : (
+                        <button className="tu-settings-item" onClick={() => { setSettingsOpen(false); navigate(ROUTES.LOGIN) }}>
+                            <span className="tu-settings-item-icon">→</span>
+                            <span className="tu-settings-item-label">Sign In</span>
+                            <span className="tu-settings-item-hint">Unlock AI tools</span>
+                        </button>
                     )}
 
                     {/* About */}
@@ -1234,6 +1241,28 @@ export default function TextForm(props) {
 
         <AchievementToast achievement={gamification.newAchievement} />
         <CommandPalette search={search} onToolClick={handleToolClick} />
+
+        {/* Sign-in gate modal */}
+        {trial.showSignInGate && (
+            <>
+                <div className="tu-modal-backdrop" onClick={trial.dismissGate} />
+                <div className="tu-modal">
+                    <div className="tu-modal-header">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <span>Free trial ended</span>
+                    </div>
+                    <div className="tu-modal-body">
+                        <p style={{ margin: '0 0 8px', fontSize: '0.85rem', color: 'var(--text-2)' }}>
+                            You've used your <b>3 free tool runs</b>. Sign in to unlock unlimited access to all {TOOLS.length}+ tools.
+                        </p>
+                    </div>
+                    <div className="tu-modal-footer">
+                        <button className="tu-modal-btn tu-modal-btn--secondary" onClick={trial.dismissGate}>Maybe later</button>
+                        <button className="tu-modal-btn tu-modal-btn--primary" onClick={() => { trial.dismissGate(); navigate(ROUTES.LOGIN) }}>Sign In</button>
+                    </div>
+                </div>
+            </>
+        )}
         </>
     )
 }

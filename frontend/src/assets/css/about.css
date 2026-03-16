@@ -1,0 +1,239 @@
+/* ═══════════════════════════════════════════════════════
+   About Page
+   ═══════════════════════════════════════════════════════ */
+
+.about-page {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 32px 24px 80px;
+  color: var(--text);
+}
+
+/* ── Back link ─────────────────────────────────────── */
+.about-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--text-3);
+  text-decoration: none;
+  margin-bottom: 32px;
+  transition: color 0.15s;
+}
+
+.about-back:hover {
+  color: var(--accent);
+}
+
+/* ── Hero ──────────────────────────────────────────── */
+.about-hero {
+  margin-bottom: 40px;
+}
+
+.about-hero-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+
+.about-hero-sub {
+  font-size: 0.85rem;
+  color: var(--text-3);
+  line-height: 1.6;
+  margin: 0 0 24px;
+  max-width: 500px;
+}
+
+/* ── Stats ─────────────────────────────────────────── */
+.about-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.about-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.about-stat-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.about-stat-label {
+  font-size: 0.7rem;
+  color: var(--text-3);
+}
+
+/* ── Sections ──────────────────────────────────────── */
+.about-section {
+  margin-bottom: 36px;
+}
+
+.about-section-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Features ──────────────────────────────────────── */
+.about-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.about-feature {
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.about-feature-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.about-feature-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.about-feature-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.about-feature-desc {
+  font-size: 0.72rem;
+  color: var(--text-3);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Categories ────────────────────────────────────── */
+.about-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.about-category-chip {
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+}
+
+/* ── Principles ────────────────────────────────────── */
+.about-principles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.about-principle {
+  padding: 14px 16px;
+  border-radius: var(--r-md);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.about-principle-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+
+.about-principle-text {
+  font-size: 0.7rem;
+  color: var(--text-3);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Tech ──────────────────────────────────────────── */
+.about-tech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.about-tech-tag {
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  background: var(--accent-glow);
+  border: 1px solid rgba(0, 122, 204, 0.15);
+  color: var(--accent);
+}
+
+/* ── CTA ───────────────────────────────────────────── */
+.about-cta {
+  text-align: center;
+  padding: 28px 0 0;
+  border-top: 1px solid var(--border);
+}
+
+.about-cta-text {
+  font-size: 0.8rem;
+  color: var(--text-3);
+  margin: 0 0 14px;
+}
+
+.about-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  border-radius: var(--r-md);
+  background: var(--button-bg);
+  color: var(--button-fg);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.about-cta-btn:hover {
+  background: var(--button-hover);
+}
+
+/* ── Responsive ────────────────────────────────────── */
+@media (max-width: 640px) {
+  .about-page {
+    padding: 24px 16px 60px;
+  }
+
+  .about-hero-title {
+    font-size: 1.3rem;
+  }
+
+  .about-features,
+  .about-principles {
+    grid-template-columns: 1fr;
+  }
+}

@@ -61,22 +61,6 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 2px 0;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
-}
-
-.tu-tpanel-list::-webkit-scrollbar {
-  width: 6px;
-}
-.tu-tpanel-list::-webkit-scrollbar-track {
-  background: transparent;
-}
-.tu-tpanel-list::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 3px;
-}
-.tu-tpanel-list::-webkit-scrollbar-thumb:hover {
-  background: var(--border-strong);
 }
 
 /* ── Tool item (VSCode list item style) ───────────── */

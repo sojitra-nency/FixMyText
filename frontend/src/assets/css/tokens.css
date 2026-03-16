@@ -126,6 +126,12 @@ body {
   --pipeline-line:    #C8C8C8;
   --pipeline-node:    #007ACC;
 
+  /* Scrollbar */
+  --scrollbar-thumb:   #C1C1C1;
+  --scrollbar-thumb-hover: #A0A0A0;
+  --scrollbar-track:   transparent;
+  --scrollbar-width:   8px;
+
   /* Light-friendly accent overrides (dark-theme values are too faint on white) */
   --amber:         #B5920A;
   --yellow:        #9E7B00;
@@ -205,6 +211,12 @@ body.dark {
   --suggestion-bg: #252526;
   --suggestion-border: #3C3C3C;
 
+  /* Scrollbar */
+  --scrollbar-thumb:   #424242;
+  --scrollbar-thumb-hover: #555555;
+  --scrollbar-track:   transparent;
+  --scrollbar-width:   8px;
+
   /* Dark-friendly accent colors */
   --amber:         #DCDCAA;
   --yellow:        #D7BA7D;
@@ -218,4 +230,37 @@ body.dark {
   --indigo:        #569CD6;
   --rose:          #F44747;
   --cyan:          #4EC9B0;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Global Scrollbar — VSCode style
+   ═══════════════════════════════════════════════════════ */
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+/* Webkit (Chrome, Edge, Safari) */
+*::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+  height: var(--scrollbar-width);
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+*::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track);
 }

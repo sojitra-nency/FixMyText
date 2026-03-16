@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 
 export default function Navbar(props) {
     const [menuOpen, setMenuOpen] = useState(false)
+    const { accessToken } = useSelector((s) => s.auth)
 
     const handleShare = () => {
         navigator.clipboard.writeText(window.location.origin)
@@ -30,6 +32,14 @@ export default function Navbar(props) {
                     <span className="tu-titlebar-search-text">Search tools...</span>
                     <kbd className="tu-titlebar-search-kbd">Ctrl+F</kbd>
                 </button>
+
+                {/* About */}
+                <Link className="tu-titlebar-share d-none d-md-flex" to="/about" title="About FixMyText">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+                    </svg>
+                    <span className="tu-titlebar-share-label">About</span>
+                </Link>
 
                 {/* Share website link */}
                 <button
@@ -59,6 +69,13 @@ export default function Navbar(props) {
                     <span className="tu-titlebar-share-label">GitHub</span>
                 </a>
 
+                {/* Sign In (when logged out) */}
+                {!accessToken && (
+                    <Link className="tu-titlebar-signin" to="/login" title="Sign in">
+                        Sign In
+                    </Link>
+                )}
+
                 {/* Mobile hamburger */}
                 <button
                     className="tu-theme-btn d-md-none"
@@ -78,6 +95,11 @@ export default function Navbar(props) {
                     <Link className="tu-mobile-link" to="/about" onClick={() => setMenuOpen(false)}>
                         About
                     </Link>
+                    {!accessToken && (
+                        <Link className="tu-mobile-link" to="/login" onClick={() => setMenuOpen(false)}>
+                            Sign In
+                        </Link>
+                    )}
                 </div>
             )}
         </nav>

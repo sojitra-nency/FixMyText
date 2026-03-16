@@ -54,7 +54,7 @@ function App() {
           <Route
             exact
             path={ROUTES.ABOUT}
-            element={<AboutPage mode={mode} />}
+            element={<AboutPage />}
           />
           <Route
             path={ROUTES.LOGIN}

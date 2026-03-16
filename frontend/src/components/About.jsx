@@ -1,53 +1,150 @@
-export default function About(props) {
-    const mystyle = {
-        color: '#163563',
-        backgroundColor: props.mode === 'dark' ? 'white' : '#E0E0E0',
-        border: '1px solid white'
-    }
+import { useEffect } from 'react'
+import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { USE_CASE_TABS, TOOLS } from '../constants/tools'
 
+const STATS = [
+    { value: `${TOOLS.length}+`, label: 'Tools' },
+    { value: '9', label: 'Categories' },
+    { value: '14+', label: 'Languages' },
+    { value: '100%', label: 'Free' },
+]
 
+const FEATURES = [
+    {
+        icon: '✍️',
+        title: 'Text Transformation',
+        description: 'Uppercase, lowercase, title case, camelCase, snake_case, reverse, sort, deduplicate, trim, and more.',
+    },
+    {
+        icon: '🤖',
+        title: 'AI-Powered Tools',
+        description: 'Grammar fix, paraphrase, summarize, tone, translate, SEO generation, and sentiment analysis.',
+    },
+    {
+        icon: '💻',
+        title: 'Developer Toolkit',
+        description: 'JSON/CSV/YAML formatting, HTML/CSS/JS/TS prettifiers, regex tester, JWT decoder, hash generators.',
+    },
+    {
+        icon: '🔒',
+        title: 'Encoding & Decoding',
+        description: 'Base64, URL encoding, hex, Morse code, HTML/JSON escaping, ROT13 — encode and decode anything.',
+    },
+    {
+        icon: '📤',
+        title: 'Export Anywhere',
+        description: 'Download as TXT, PDF, DOCX, or JSON. Preview and render Markdown right in the editor.',
+    },
+    {
+        icon: '🎮',
+        title: 'Gamified Experience',
+        description: 'Earn XP, level up, complete daily quests, unlock achievements, and build streaks.',
+    },
+]
 
-  return (
-    <div className='container my-3' >
-        <h1 className='my-3' style={{color: props.mode === 'dark'?'#E0E0E0':'#163563',}}>About Us</h1>
-        <div className="accordion" id="accordionExample" >
-            <div className="accordion-item">
-                <h2 className="accordion-header">
-                <button className="accordion-button" style={mystyle} type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                    <strong>Analyse your Text</strong>
-                </button>
-                </h2>
-                <div id="collapseOne" className="accordion-collapse collapse show" data-bs-parent="#accordionExample">
-                <div className="accordion-body" style={mystyle}>
-                    FixMyText is a versatile text manipulation tool designed to empower users with the ability to analyze and transform text effortlessly. Whether you need to convert text to uppercase, lowercase, or sentence case, FixMyText provides a range of functions to suit your needs. With features like word count, character count, and sentence count, users can gain valuable insights into their text composition, helping them make informed decisions in their writing and communication.
+const PRINCIPLES = [
+    { title: 'Privacy First', text: 'Your text stays in your browser for local tools. AI tools send data securely and never store it.' },
+    { title: 'No Sign-Up Required', text: 'All transformation tools work without an account. Sign up only unlocks AI features.' },
+    { title: 'Always Free', text: 'Every core tool is free with no limits, no ads, and no paywalls.' },
+]
+
+const fade = {
+    initial: { opacity: 0, y: 16 },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, margin: '-30px' },
+    transition: { duration: 0.35 },
+}
+
+export default function About() {
+    useEffect(() => {
+        document.body.style.overflow = 'auto'
+        return () => { document.body.style.overflow = '' }
+    }, [])
+
+    return (
+        <div className="about-page">
+            {/* Back to editor */}
+            <Link to="/" className="about-back">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6" />
+                </svg>
+                Back to Editor
+            </Link>
+
+            {/* Hero */}
+            <motion.section className="about-hero" {...fade}>
+                <h1 className="about-hero-title">FixMyText</h1>
+                <p className="about-hero-sub">
+                    A free, all-in-one text workspace with {TOOLS.length}+ tools for writers,
+                    students, developers, and content creators.
+                </p>
+                <div className="about-stats">
+                    {STATS.map((s) => (
+                        <div key={s.label} className="about-stat">
+                            <span className="about-stat-value">{s.value}</span>
+                            <span className="about-stat-label">{s.label}</span>
+                        </div>
+                    ))}
                 </div>
+            </motion.section>
+
+            {/* Features */}
+            <section className="about-section">
+                <h2 className="about-section-title">Features</h2>
+                <div className="about-features">
+                    {FEATURES.map((f) => (
+                        <motion.div key={f.title} className="about-feature" {...fade}>
+                            <div className="about-feature-header">
+                                <span className="about-feature-icon">{f.icon}</span>
+                                <h3 className="about-feature-title">{f.title}</h3>
+                            </div>
+                            <p className="about-feature-desc">{f.description}</p>
+                        </motion.div>
+                    ))}
                 </div>
-            </div>
-            <div className="accordion-item">
-                <h2 className="accordion-header">
-                <button className="accordion-button collapsed" style={mystyle} type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                <strong>Free to use</strong>
-                </button>
-                </h2>
-                <div id="collapseTwo" className="accordion-collapse collapse" data-bs-parent="#accordionExample">
-                <div className="accordion-body" style={mystyle}>
-                    FixMyText is committed to providing a seamless and accessible text manipulation experience for all users, completely free of charge. We believe that everyone should have access to powerful tools that enhance productivity and creativity without any financial barriers. Our platform is open to all, allowing users to harness the full potential of text manipulation without limitations.
+            </section>
+
+            {/* Categories */}
+            <motion.section className="about-section" {...fade}>
+                <h2 className="about-section-title">Categories</h2>
+                <div className="about-categories">
+                    {USE_CASE_TABS.filter(t => t.id !== 'all').map((tab) => (
+                        <span key={tab.id} className="about-category-chip">
+                            {tab.icon} {tab.label}
+                        </span>
+                    ))}
                 </div>
+            </motion.section>
+
+            {/* Principles */}
+            <section className="about-section">
+                <h2 className="about-section-title">Principles</h2>
+                <div className="about-principles">
+                    {PRINCIPLES.map((p) => (
+                        <motion.div key={p.title} className="about-principle" {...fade}>
+                            <h3 className="about-principle-title">{p.title}</h3>
+                            <p className="about-principle-text">{p.text}</p>
+                        </motion.div>
+                    ))}
                 </div>
-            </div>
-            <div className="accordion-item">
-                <h2 className="accordion-header">
-                <button className="accordion-button collapsed" style={mystyle} type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                <strong>Browser Compatible</strong>
-                </button>
-                </h2>
-                <div id="collapseThree" className="accordion-collapse collapse" data-bs-parent="#accordionExample">
-                <div className="accordion-body" style={mystyle}>
-                    FixMyText is built with compatibility in mind, ensuring a smooth user experience across various web browsers. Whether you prefer Chrome, Firefox, Safari, or any other modern browser, you can rely on FixMyText to perform consistently and reliably. Our responsive design adapts seamlessly to different screen sizes and devices, allowing you to access and utilize our tools from anywhere, anytime.
+            </section>
+
+            {/* Tech */}
+            <motion.section className="about-section" {...fade}>
+                <h2 className="about-section-title">Built with</h2>
+                <div className="about-tech">
+                    {['React', 'Vite', 'Redux Toolkit', 'FastAPI', 'Framer Motion', 'Prettier'].map((t) => (
+                        <span key={t} className="about-tech-tag">{t}</span>
+                    ))}
                 </div>
-                </div>
-            </div>
+            </motion.section>
+
+            {/* CTA */}
+            <motion.section className="about-cta" {...fade}>
+                <p className="about-cta-text">No install needed. Open and start typing.</p>
+                <Link to="/" className="about-cta-btn">Open Editor</Link>
+            </motion.section>
         </div>
-    </div>
-  )
+    )
 }
