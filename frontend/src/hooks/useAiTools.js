@@ -29,26 +29,26 @@ export default function useAiTools(text, setText, setMarkdownMode, setPreviewMod
             if (pushHistory) pushHistory(label, original, data.result)
             showAlert(`${label} generated`, 'success')
         } catch (err) {
-            showAlert(err.data?.detail || err.message || errorMsg, 'danger')
+            showAlert(err.data?.detail || errorMsg, 'danger')
         }
     }
 
-    const handleHashtags         = () => callAi(ENDPOINTS.GENERATE_HASHTAGS,         'Hashtags',          'Hashtag generation failed')
-    const handleSeoTitles        = () => callAi(ENDPOINTS.GENERATE_SEO_TITLES,        'SEO Titles',        'SEO title generation failed')
-    const handleMetaDescriptions = () => callAi(ENDPOINTS.GENERATE_META_DESCRIPTIONS, 'Meta Descriptions', 'Meta description generation failed')
-    const handleBlogOutline      = () => callAi(ENDPOINTS.GENERATE_BLOG_OUTLINE,      'Blog Outline',      'Blog outline generation failed')
-    const handleTweetShorten     = () => callAi(ENDPOINTS.SHORTEN_FOR_TWEET,          'Tweet',             'Tweet shortening failed')
-    const handleEmailRewrite     = () => callAi(ENDPOINTS.REWRITE_EMAIL,              'Email',             'Email rewriting failed')
-    const handleKeywords         = () => callAi(ENDPOINTS.EXTRACT_KEYWORDS,           'Keywords',          'Keyword extraction failed')
-    const handleSummarize        = () => callAi(ENDPOINTS.SUMMARIZE,                  'Summary',           'Summarization failed')
-    const handleFixGrammar       = () => callAi(ENDPOINTS.FIX_GRAMMAR,                'Grammar Fix',       'Grammar fixing failed')
-    const handleParaphrase       = () => callAi(ENDPOINTS.PARAPHRASE,                 'Paraphrase',        'Paraphrasing failed')
-    const handleSentiment        = () => callAi(ENDPOINTS.ANALYZE_SENTIMENT,          'Sentiment',         'Sentiment analysis failed')
-    const handleLengthenText     = () => callAi(ENDPOINTS.LENGTHEN_TEXT,              'Lengthened',        'Text lengthening failed')
-    const handleEli5             = () => callAi(ENDPOINTS.ELI5,                       'ELI5',              'ELI5 simplification failed')
-    const handleProofread        = () => callAi(ENDPOINTS.PROOFREAD,                  'Proofread',         'Proofreading failed')
-    const handleGenerateTitle    = () => callAi(ENDPOINTS.GENERATE_TITLE,             'Titles',            'Title generation failed')
-    const handleRefactorPrompt   = () => callAi(ENDPOINTS.REFACTOR_PROMPT,            'Prompt Refactored', 'Prompt refactoring failed')
+    const handleHashtags         = () => callAi(ENDPOINTS.GENERATE_HASHTAGS,         'Hashtags',          'Could not generate hashtags. Please try again.')
+    const handleSeoTitles        = () => callAi(ENDPOINTS.GENERATE_SEO_TITLES,        'SEO Titles',        'Could not generate SEO titles. Please try again.')
+    const handleMetaDescriptions = () => callAi(ENDPOINTS.GENERATE_META_DESCRIPTIONS, 'Meta Descriptions', 'Could not generate meta descriptions. Please try again.')
+    const handleBlogOutline      = () => callAi(ENDPOINTS.GENERATE_BLOG_OUTLINE,      'Blog Outline',      'Could not generate blog outline. Please try again.')
+    const handleTweetShorten     = () => callAi(ENDPOINTS.SHORTEN_FOR_TWEET,          'Tweet',             'Could not shorten for tweet. Please try again.')
+    const handleEmailRewrite     = () => callAi(ENDPOINTS.REWRITE_EMAIL,              'Email',             'Could not rewrite email. Please try again.')
+    const handleKeywords         = () => callAi(ENDPOINTS.EXTRACT_KEYWORDS,           'Keywords',          'Could not extract keywords. Please try again.')
+    const handleSummarize        = () => callAi(ENDPOINTS.SUMMARIZE,                  'Summary',           'Could not summarize text. Please try again.')
+    const handleFixGrammar       = () => callAi(ENDPOINTS.FIX_GRAMMAR,                'Grammar Fix',       'Could not fix grammar. Please try again.')
+    const handleParaphrase       = () => callAi(ENDPOINTS.PARAPHRASE,                 'Paraphrase',        'Could not paraphrase text. Please try again.')
+    const handleSentiment        = () => callAi(ENDPOINTS.ANALYZE_SENTIMENT,          'Sentiment',         'Could not analyze sentiment. Please try again.')
+    const handleLengthenText     = () => callAi(ENDPOINTS.LENGTHEN_TEXT,              'Lengthened',        'Could not lengthen text. Please try again.')
+    const handleEli5             = () => callAi(ENDPOINTS.ELI5,                       'ELI5',              'Could not simplify text. Please try again.')
+    const handleProofread        = () => callAi(ENDPOINTS.PROOFREAD,                  'Proofread',         'Could not proofread text. Please try again.')
+    const handleGenerateTitle    = () => callAi(ENDPOINTS.GENERATE_TITLE,             'Titles',            'Could not generate titles. Please try again.')
+    const handleRefactorPrompt   = () => callAi(ENDPOINTS.REFACTOR_PROMPT,            'Prompt Refactored', 'Could not refactor prompt. Please try again.')
 
     const handleChangeFormat = async () => {
         if (!text) return
@@ -61,7 +61,7 @@ export default function useAiTools(text, setText, setMarkdownMode, setPreviewMod
             if (pushHistory) pushHistory(label, original, data.result)
             showAlert(`Reformatted as ${formatSetting}`, 'success')
         } catch (err) {
-            showAlert(err.data?.detail || err.message || 'Format changing failed', 'danger')
+            showAlert(err.data?.detail || 'Could not change format. Please try again.', 'danger')
         }
     }
 
@@ -76,7 +76,7 @@ export default function useAiTools(text, setText, setMarkdownMode, setPreviewMod
             if (pushHistory) pushHistory(label, original, data.result)
             showAlert(`Tone changed to ${toneSetting}`, 'success')
         } catch (err) {
-            showAlert(err.data?.detail || err.message || 'Tone changing failed', 'danger')
+            showAlert(err.data?.detail || 'Could not change tone. Please try again.', 'danger')
         }
     }
 
@@ -91,7 +91,7 @@ export default function useAiTools(text, setText, setMarkdownMode, setPreviewMod
             if (pushHistory) pushHistory(label, original, data.result)
             showAlert(`Translated to ${translateLang}`, 'success')
         } catch (err) {
-            showAlert(err.data?.detail || err.message || 'Translation failed', 'danger')
+            showAlert(err.data?.detail || 'Could not translate text. Please try again.', 'danger')
         }
     }
 
@@ -106,7 +106,7 @@ export default function useAiTools(text, setText, setMarkdownMode, setPreviewMod
             if (pushHistory) pushHistory(label, original, data.result)
             showAlert(`Transliterated to ${translitLang} script`, 'success')
         } catch (err) {
-            showAlert(err.data?.detail || err.message || 'Transliteration failed', 'danger')
+            showAlert(err.data?.detail || 'Could not transliterate text. Please try again.', 'danger')
         }
     }
 

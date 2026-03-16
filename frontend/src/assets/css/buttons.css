@@ -4,6 +4,9 @@
   top: 50px;
   right: 16px;
   z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   pointer-events: none;
 }
 
@@ -11,7 +14,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
+  padding: 8px 10px 8px 12px;
   border-radius: var(--r-md);
   background: var(--surface);
   border: 1px solid var(--border);
@@ -20,25 +23,67 @@
   font-weight: 500;
   color: var(--text);
   animation: toast-slide-in 0.25s ease both;
-  min-width: 200px;
-  max-width: 320px;
+  min-width: 220px;
+  max-width: 360px;
+  pointer-events: auto;
 }
+
+.tu-toast--exit {
+  animation: toast-slide-out 0.2s ease both;
+}
+
+.tu-toast-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+.tu-toast--success .tu-toast-icon { color: var(--emerald); }
+.tu-toast--danger  .tu-toast-icon { color: var(--rose);    }
+.tu-toast--warning .tu-toast-icon { color: var(--amber);   }
+.tu-toast--info    .tu-toast-icon { color: var(--accent);  }
+
+.tu-toast-msg {
+  flex: 1;
+  line-height: 1.35;
+}
+
+.tu-toast-close {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  border-radius: var(--r-sm);
+  padding: 0;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s, color 0.15s;
+}
+.tu-toast:hover .tu-toast-close { opacity: 1; }
+.tu-toast-close:hover {
+  background: var(--list-hover);
+  color: var(--text);
+}
+
+/* Left accent stripe */
+.tu-toast--success { border-left: 3px solid var(--emerald); }
+.tu-toast--danger  { border-left: 3px solid var(--rose);    }
+.tu-toast--warning { border-left: 3px solid var(--amber);   }
+.tu-toast--info    { border-left: 3px solid var(--accent);  }
 
 @keyframes toast-slide-in {
   from { opacity: 0; transform: translateX(16px); }
   to   { opacity: 1; transform: translateX(0);    }
 }
 
-.tu-toast-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex-shrink: 0;
+@keyframes toast-slide-out {
+  from { opacity: 1; transform: translateX(0);     }
+  to   { opacity: 0; transform: translateX(16px);  }
 }
-.tu-toast--success .tu-toast-dot { background: var(--emerald); }
-.tu-toast--danger  .tu-toast-dot { background: var(--rose);    }
-.tu-toast--warning .tu-toast-dot { background: var(--amber);   }
-.tu-toast--info    .tu-toast-dot { background: var(--accent);  }
 
 /* ── Buttons (VSCode style) ─────────────────────────── */
 .tu-btn {

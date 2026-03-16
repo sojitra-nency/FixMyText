@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { USE_CASE_TABS } from '../../constants/tools'
 
-function ToolPanelItem({ tool, disabled, onClick, isDiscovered, isFavorite, onToggleFavorite, isActive, ai, onHover, onLeave }) {
+function ToolPanelItem({ tool, disabled, onClick, isDiscovered, isFavorite, onToggleFavorite, isActive, isSuggested, ai, onHover, onLeave }) {
   const [selectVal, setSelectVal] = useState(tool.options?.[0]?.[0] || '')
   const [hovered, setHovered] = useState(false)
   const isDisabled = disabled && tool.type !== 'drawer' && tool.type !== 'action'
@@ -45,6 +45,7 @@ function ToolPanelItem({ tool, disabled, onClick, isDiscovered, isFavorite, onTo
       >
         <span className={`tu-titem-icon tu-titem-icon--${tool.color}`}>{tool.icon}</span>
         <span className="tu-titem-name">{tool.label}</span>
+        {isSuggested && <span className="tu-titem-suggested">suggested</span>}
         {!isDiscovered && (tool.tabs?.includes('ai') || tool.tabs?.includes('code')) && <span className="tu-titem-new">NEW</span>}
         {tool.type === 'select' && (
           <select
@@ -73,7 +74,7 @@ function ToolPanelItem({ tool, disabled, onClick, isDiscovered, isFavorite, onTo
 export default memo(function ToolPanel({
   tools, activeTab, onTabChange, onToolClick,
   disabled, gamification, activePanel, ai,
-  hideTabs,
+  hideTabs, suggestedToolIds = [],
 }) {
   const [tooltip, setTooltip] = useState(null)
 
@@ -100,12 +101,19 @@ export default memo(function ToolPanel({
   const handleLeave = useCallback(() => setTooltip(null), [])
 
   const filteredTools = useMemo(() => {
+    if (activeTab === 'all') return [...tools].sort((a, b) => a.label.localeCompare(b.label))
     if (activeTab === 'popular') {
+      const suggested = new Set(suggestedToolIds)
       const usage = gamification?.toolsUsed || {}
-      return [...tools].sort((a, b) => (usage[b.id] || 0) - (usage[a.id] || 0))
+      return [...tools].sort((a, b) => {
+        const aSug = suggested.has(a.id) ? 1 : 0
+        const bSug = suggested.has(b.id) ? 1 : 0
+        if (aSug !== bSug) return bSug - aSug
+        return (usage[b.id] || 0) - (usage[a.id] || 0)
+      })
     }
     return tools.filter(t => t.tabs?.includes(activeTab))
-  }, [tools, activeTab, gamification?.toolsUsed])
+  }, [tools, activeTab, gamification?.toolsUsed, suggestedToolIds])
 
   return (
     <div className="tu-tpanel">
@@ -144,6 +152,7 @@ export default memo(function ToolPanel({
                 isFavorite={gamification?.favorites?.includes(tool.id)}
                 onToggleFavorite={gamification?.toggleFavorite}
                 isActive={tool.type === 'drawer' && activePanel === tool.panelId}
+                isSuggested={suggestedToolIds.includes(tool.id)}
                 ai={ai}
                 onHover={handleHover}
                 onLeave={handleLeave}

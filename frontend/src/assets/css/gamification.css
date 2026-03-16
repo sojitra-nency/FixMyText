@@ -324,7 +324,9 @@
 .tu-onboard-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 10000;
   display: flex;
   align-items: center;
@@ -332,106 +334,176 @@
   padding: 1rem;
 }
 
+/* Floating background particles */
+.tu-onboard-particles {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.tu-onboard-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
 .tu-onboard {
-  width: 90%;
-  max-width: 460px;
-  border-radius: var(--r-lg);
+  position: relative;
+  width: 92%;
+  max-width: 500px;
+  border-radius: 16px;
   background: var(--surface);
   border: 1px solid var(--border);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 20px 60px rgba(0, 0, 0, 0.5),
+    0 0 80px rgba(0, 122, 204, 0.08);
   overflow: hidden;
 }
 
 .tu-onboard-header {
-  padding: 1.5rem 1.5rem 0.5rem;
+  position: relative;
+  z-index: 1;
+  padding: 2rem 2rem 0.75rem;
   text-align: center;
 }
 
+.tu-onboard-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #007ACC 0%, #4EC9B0 100%);
+  margin-bottom: 14px;
+  box-shadow: 0 4px 20px rgba(0, 122, 204, 0.3);
+}
+
+.tu-onboard-logo-icon {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #fff;
+  font-family: var(--font-display);
+  line-height: 1;
+}
+
 .tu-onboard-title {
-  font-size: 1.3rem;
+  font-size: 1.35rem;
   font-weight: 700;
   color: var(--text);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
+  letter-spacing: -0.02em;
+}
+
+.tu-onboard-cursor {
+  color: var(--accent);
+  font-weight: 300;
+  margin-left: 1px;
 }
 
 .tu-onboard-sub {
   font-size: 0.82rem;
   color: var(--text-3);
+  line-height: 1.4;
 }
 
 .tu-onboard-personas {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 1rem 1.5rem;
+  padding: 0.75rem 1.25rem;
 }
 
 .tu-onboard-persona {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: var(--r-md);
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--bg);
   cursor: pointer;
-  transition: all var(--t);
+  transition: all 0.2s ease;
+  overflow: hidden;
+  text-align: left;
 }
 
 .tu-onboard-persona:hover {
-  border-color: var(--accent);
   background: var(--list-hover);
 }
 
-.tu-onboard-persona-icon { font-size: 1.3rem; }
-.tu-onboard-persona-text { display: flex; flex-direction: column; gap: 2px; }
-.tu-onboard-persona-label { font-size: 0.82rem; font-weight: 600; color: var(--text); }
-.tu-onboard-persona-hint { font-size: 0.68rem; color: var(--text-3); }
-
-.tu-onboard-themes {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  padding: 0 1.5rem 1.5rem;
+.tu-onboard-persona-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
 }
 
-.tu-onboard-theme {
-  padding: 12px;
-  border-radius: var(--r-md);
-  border: 2px solid var(--border);
-  cursor: pointer;
-  text-align: center;
-  transition: all var(--t);
+.tu-onboard-persona-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
 }
 
-.tu-onboard-theme:hover { border-color: var(--accent); }
-
-.tu-onboard-theme--active {
-  border-color: var(--accent);
-  background: var(--list-hover);
-}
-
-.tu-onboard-theme-icon { font-size: 1.5rem; margin-bottom: 4px; }
-.tu-onboard-theme-name { font-size: 0.78rem; font-weight: 600; color: var(--text); }
-.tu-onboard-theme-desc { font-size: 0.62rem; color: var(--text-3); margin-top: 2px; }
-
-.tu-onboard-go {
-  display: block;
-  width: calc(100% - 3rem);
-  margin: 0 1.5rem 1.5rem;
-  padding: 10px;
-  border-radius: var(--r-md);
-  border: none;
-  background: var(--button-bg);
-  color: var(--button-fg);
+.tu-onboard-persona-label {
   font-size: 0.85rem;
   font-weight: 600;
-  cursor: pointer;
-  transition: background var(--t);
+  color: var(--text);
 }
 
-.tu-onboard-go:hover { background: var(--button-hover); }
-.tu-onboard-go:disabled { opacity: 0.5; cursor: not-allowed; }
+.tu-onboard-persona-tagline {
+  font-size: 0.7rem;
+  color: var(--text-3);
+  font-style: italic;
+}
+
+/* Tool tags */
+.tu-onboard-persona-tools {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.tu-onboard-tool-tag {
+  font-size: 0.6rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+/* Arrow indicator */
+.tu-onboard-persona-arrow {
+  flex-shrink: 0;
+  color: var(--text-3);
+}
+
+/* Footer */
+.tu-onboard-footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 0.5rem 1.25rem 1.25rem;
+  font-size: 0.65rem;
+  color: var(--text-3);
+  opacity: 0.6;
+}
 
 /* ── Sidebar (within sidebar) ─────────────────────── */
 .tu-sidebar {

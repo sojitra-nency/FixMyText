@@ -24,7 +24,7 @@ export default function LoginPage({ showAlert }) {
             showAlert('Logged in successfully', 'success')
             navigate(ROUTES.HOME)
         } catch (err) {
-            showAlert(err.data?.detail || 'Login failed', 'danger')
+            showAlert(err.data?.detail || 'Login failed. Please check your credentials.', 'danger')
         }
     }
 

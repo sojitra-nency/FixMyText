@@ -21,6 +21,7 @@ export const USE_CASE_TABS = [
   { id: 'language',  label: 'Language',      icon: '🌐', color: 'indigo' },
   { id: 'encode',    label: 'Encode',       icon: '🔒', color: 'indigo' },
   { id: 'export',    label: 'Export',        icon: '📤', color: 'emerald' },
+  { id: 'all',       label: 'All Tools',     icon: '📦', color: 'gray' },
 ]
 
 /*
@@ -122,7 +123,6 @@ export const TOOLS = [
   { id: 'password',      label: 'Password',        description: 'Generate a strong random password',      icon: '⚿',  color: 'amber',  tabs: ['transform','popular'],   type: 'drawer', panelId: 'password',   keywords: ['password','generate','random','security'] },
 
   // ──────────────── Utilities ────────────────
-  { id: 'templates',     label: 'Templates',       description: 'Start with pre-made text templates',     icon: '📋', color: 'amber',   tabs: ['writing'],              type: 'drawer', panelId: 'templates',  keywords: ['template','preset','starter'] },
   { id: 'word_freq',     label: 'Word Freq',       description: 'Analyze word frequency in your text',    icon: 'W#', color: 'purple',   tabs: ['writing'],              type: 'local', handlerKey: 'handleWordFrequency', keywords: ['word','frequency','count','analyze'] },
 
   // ──────────────── Actions ────────────────

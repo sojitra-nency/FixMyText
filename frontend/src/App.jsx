@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import './assets/css/App.css';
 import Alert from './components/layout/Alert';
 import Navbar from './components/layout/Navbar';
@@ -17,10 +17,20 @@ import useGamification from './hooks/useGamification';
 import { ROUTES } from './constants';
 
 function App() {
-  const { alert, showAlert } = useAlert();
+  const { alert, alerts, showAlert, dismissAlert } = useAlert();
   const { mode, setMode } = useTheme(showAlert);
   const { user, isAuthenticated } = useAuth();
   const gamification = useGamification();
+
+  // Listen for global RTK Query errors from middleware
+  useEffect(() => {
+    const handler = (e) => {
+      const { message, type } = e.detail;
+      showAlert(message, type);
+    };
+    window.addEventListener('rtk-api-error', handler);
+    return () => window.removeEventListener('rtk-api-error', handler);
+  }, [showAlert]);
 
   const handleOnboardingComplete = (persona) => {
     gamification.setPersona(persona);
@@ -33,7 +43,7 @@ function App() {
       )}
 
       <Navbar showAlert={showAlert} />
-      <Alert alert={alert} />
+      <Alert alerts={alerts} dismissAlert={dismissAlert} />
       <Suspense fallback={null}>
         <Routes>
           <Route

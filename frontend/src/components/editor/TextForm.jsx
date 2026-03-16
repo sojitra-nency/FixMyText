@@ -220,7 +220,7 @@ export default function TextForm(props) {
             showAlert(successMsg, 'success')
             return { success: true, result: data.result }
         } catch (err) {
-            showAlert(err.data?.detail || err.message || 'API error', 'danger')
+            showAlert(err.data?.detail || 'Something went wrong. Please try again.', 'danger')
             return { success: false }
         }
     }
@@ -616,6 +616,7 @@ export default function TextForm(props) {
                         activePanel={activePanel}
                         ai={ai}
                         hideTabs
+                        suggestedToolIds={suggestions.suggestions.map(t => t.id)}
                     />
                 )}
 
@@ -1050,7 +1051,7 @@ export default function TextForm(props) {
                                 ) : null
                             }
                             const toolResult = ws?.type === 'tool' ? toolResults[ws.tool.id] : null
-                            const displayResult = toolResult || ai.aiResult
+                            const displayResult = text ? (toolResult || ai.aiResult) : null
                             return (
                                 <OutputPanel
                                     aiResult={displayResult || null}

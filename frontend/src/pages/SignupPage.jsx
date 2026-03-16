@@ -34,7 +34,7 @@ export default function SignupPage({ showAlert }) {
             showAlert('Account created successfully', 'success')
             navigate(ROUTES.HOME)
         } catch (err) {
-            showAlert(err.data?.detail || 'Registration failed', 'danger')
+            showAlert(err.data?.detail || 'Registration failed. Please try again.', 'danger')
         }
     }
 
