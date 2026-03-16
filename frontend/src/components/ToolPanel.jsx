@@ -63,7 +63,7 @@ function ToolPanelItem({ tool, disabled, onClick, isDiscovered, isFavorite, onTo
           className={`tu-titem-fav${isFavorite ? ' tu-titem-fav--active' : ''}`}
           onClick={e => { e.stopPropagation(); onToggleFavorite?.(tool.id) }}
         >
-          {isFavorite ? '★' : '☆'}
+          {isFavorite ? '♥' : '♡'}
         </button>
       </div>
     </div>

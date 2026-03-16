@@ -11,4 +11,5 @@ export const ROUTES = {
     ABOUT: '/about',
     LOGIN: '/login',
     SIGNUP: '/signup',
+    DASHBOARD: '/dashboard',
 };

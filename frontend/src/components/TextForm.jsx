@@ -625,23 +625,25 @@ export default function TextForm(props) {
                         .map(id => TOOLS.find(t => t.id === id))
                         .filter(Boolean)
                     return (
-                        <div className="tu-sidebar-panel">
+                        <div className="tu-tpanel">
                             {favTools.length === 0 ? (
                                 <div className="tu-sidebar-panel-empty">
                                     No favourite tools yet.<br />
-                                    Click ☆ on any tool to add it here.
+                                    Click ♡ on any tool to add it here.
                                 </div>
                             ) : (
-                                <div className="tu-sidebar-panel-list">
+                                <div className="tu-tpanel-list">
                                     {favTools.map(tool => (
-                                        <div key={tool.id} className="tu-sidebar-panel-item" onClick={() => handleToolClick(tool)}>
-                                            <span className="tu-sidebar-panel-item-icon">{tool.icon}</span>
-                                            <span className="tu-sidebar-panel-item-name">{tool.label}</span>
-                                            <button
-                                                className="tu-sidebar-panel-item-del"
-                                                onClick={e => { e.stopPropagation(); gamification?.toggleFavorite(tool.id) }}
-                                                title="Remove from favourites"
-                                            >★</button>
+                                        <div key={tool.id} className="tu-titem-wrap">
+                                            <div className="tu-titem" onClick={() => handleToolClick(tool)}>
+                                                <span className={`tu-titem-icon tu-titem-icon--${tool.color}`}>{tool.icon}</span>
+                                                <span className="tu-titem-name">{tool.label}</span>
+                                                <button
+                                                    className="tu-titem-fav tu-titem-fav--active"
+                                                    onClick={e => { e.stopPropagation(); gamification?.toggleFavorite(tool.id) }}
+                                                    title="Remove from favourites"
+                                                >♥</button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -1137,6 +1139,13 @@ export default function TextForm(props) {
                         <span className="tu-settings-item-icon">⌨</span>
                         <span className="tu-settings-item-label">Command Palette</span>
                         <kbd className="tu-settings-item-kbd">Ctrl+F</kbd>
+                    </button>
+
+                    {/* Dashboard */}
+                    <button className="tu-settings-item" onClick={() => { setSettingsOpen(false); navigate('/dashboard') }}>
+                        <span className="tu-settings-item-icon">📊</span>
+                        <span className="tu-settings-item-label">Dashboard</span>
+                        <span className="tu-settings-item-hint">Stats & settings</span>
                     </button>
 
                     {/* Keyboard shortcuts info */}

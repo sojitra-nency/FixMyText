@@ -1,0 +1,1044 @@
+/* ═══════════════════════════════════════════════════════
+   Dashboard — VSCode-style user dashboard
+   ═══════════════════════════════════════════════════════ */
+
+.tu-dash {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  height: calc(100vh - 35px);
+  background: var(--editor-bg);
+  color: var(--editor-fg);
+  overflow: hidden;
+}
+
+/* ── Sidebar ── */
+.tu-dash-sidebar {
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.tu-dash-sidebar-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 16px;
+  border-bottom: 1px solid var(--sidebar-border);
+}
+
+.tu-dash-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.tu-dash-profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.tu-dash-profile-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tu-dash-profile-level {
+  font-size: 0.68rem;
+  color: var(--text-3);
+}
+
+.tu-dash-nav {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 0;
+}
+
+.tu-dash-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  color: var(--sidebar-fg);
+  font-size: 0.78rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--t);
+  border-left: 2px solid transparent;
+}
+
+.tu-dash-nav-item:hover {
+  background: var(--sidebar-highlight);
+}
+
+.tu-dash-nav-item--active {
+  background: var(--sidebar-highlight);
+  border-left-color: var(--accent);
+  color: var(--text);
+  font-weight: 500;
+}
+
+.tu-dash-nav-icon {
+  font-size: 0.9rem;
+  width: 20px;
+  text-align: center;
+}
+
+.tu-dash-sidebar-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--sidebar-border);
+}
+
+.tu-dash-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 10px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text-2);
+  font-size: 0.72rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--t), color var(--t);
+}
+.tu-dash-back-btn:hover {
+  background: var(--sidebar-highlight);
+  color: var(--text);
+}
+
+/* ── Main content ── */
+.tu-dash-main {
+  overflow-y: auto;
+  padding: 0;
+  height: 100%;
+}
+
+.tu-dash-content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 40px;
+  padding-bottom: 60px;
+}
+
+.tu-dash-title {
+  font-size: 1.5rem;
+  font-weight: 300;
+  letter-spacing: -0.3px;
+  color: var(--text);
+  margin: 0 0 4px;
+  font-family: var(--font-display);
+}
+
+.tu-dash-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-3);
+  margin: 0 0 24px;
+}
+
+.tu-dash-section-title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 32px 0 12px;
+}
+
+/* ── Cards ── */
+.tu-dash-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.tu-dash-card--wide {
+  margin-top: 20px;
+}
+
+.tu-dash-card-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-3);
+  margin: 0 0 14px;
+}
+
+/* ── Level / XP ── */
+.tu-dash-level-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.tu-dash-level-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+
+.tu-dash-level-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tu-dash-level-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tu-dash-level-xp {
+  font-size: 0.72rem;
+  color: var(--text-3);
+}
+
+.tu-dash-xp-track {
+  height: 8px;
+  background: var(--xp-bar-bg);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.tu-dash-xp-fill {
+  height: 100%;
+  background: var(--xp-bar-fill);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.tu-dash-xp-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.62rem;
+  color: var(--text-3);
+  margin-top: 4px;
+}
+
+/* ── Stats Grid ── */
+.tu-dash-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 20px 0;
+}
+
+.tu-dash-stat-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  text-align: center;
+}
+
+.tu-dash-stat-icon {
+  font-size: 1.3rem;
+}
+
+.tu-dash-stat-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+
+.tu-dash-stat-label {
+  font-size: 0.62rem;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* ── Daily Quest ── */
+.tu-dash-quest {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+  font-size: 0.8rem;
+}
+
+.tu-dash-quest--done {
+  opacity: 0.6;
+}
+
+.tu-dash-quest-icon {
+  font-size: 1rem;
+}
+
+.tu-dash-quest-text {
+  flex: 1;
+  color: var(--text-2);
+}
+
+.tu-dash-quest-xp {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+
+/* ── Row (side by side cards) ── */
+.tu-dash-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* ── Tool list (bar chart style) ── */
+.tu-dash-tool-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tu-dash-tool-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+}
+
+.tu-dash-tool-rank {
+  width: 22px;
+  font-size: 0.62rem;
+  color: var(--text-3);
+  text-align: right;
+  font-family: var(--font-mono);
+}
+
+.tu-dash-tool-icon {
+  font-size: 0.85rem;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.tu-dash-tool-name {
+  width: 90px;
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-2);
+}
+
+.tu-dash-tool-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: var(--surface-2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.tu-dash-tool-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.tu-dash-tool-bar--cat {
+  background: var(--emerald);
+}
+
+.tu-dash-tool-count {
+  font-size: 0.65rem;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  width: 28px;
+  text-align: right;
+}
+
+/* ── Achievements grid ── */
+.tu-dash-achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.tu-dash-achievement {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  text-align: center;
+  opacity: 0.35;
+  filter: grayscale(1);
+  transition: opacity var(--t), filter var(--t);
+}
+
+.tu-dash-achievement--unlocked {
+  opacity: 1;
+  filter: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.tu-dash-achievement-icon {
+  font-size: 2rem;
+}
+
+.tu-dash-achievement-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tu-dash-achievement-desc {
+  font-size: 0.65rem;
+  color: var(--text-3);
+  line-height: 1.3;
+}
+
+/* ── Favorites panel (reuses tu-tpanel-list / tu-titem from toolcard.css) ── */
+.tu-dash-fav-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 4px 0;
+  overflow: visible;
+}
+
+/* ── Empty states ── */
+.tu-dash-empty {
+  font-size: 0.75rem;
+  color: var(--text-3);
+  padding: 12px 0;
+}
+
+.tu-dash-empty-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 60px 20px;
+  color: var(--text-3);
+  font-size: 0.85rem;
+}
+
+.tu-dash-empty-icon {
+  font-size: 2.5rem;
+  opacity: 0.3;
+}
+
+.tu-dash-empty-hint {
+  font-size: 0.7rem;
+  opacity: 0.6;
+}
+
+/* ── History list ── */
+.tu-dash-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tu-dash-history-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: var(--r-sm);
+  font-size: 0.78rem;
+  transition: background var(--t);
+}
+.tu-dash-history-item:hover {
+  background: var(--list-hover);
+}
+
+.tu-dash-history-icon {
+  font-size: 0.85rem;
+  width: 20px;
+  text-align: center;
+}
+
+.tu-dash-history-name {
+  flex: 1;
+  color: var(--text);
+}
+
+.tu-dash-history-meta {
+  display: flex;
+  gap: 6px;
+}
+
+.tu-dash-history-new {
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-glow);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.tu-dash-history-tab {
+  font-size: 0.6rem;
+  color: var(--text-3);
+  background: var(--surface-2);
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.tu-dash-history-time {
+  font-size: 0.65rem;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+}
+
+/* ── Discovered grid ── */
+.tu-dash-discovered-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.tu-dash-discovered {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+}
+
+.tu-dash-discovered--locked {
+  opacity: 0.2;
+  filter: grayscale(1);
+  font-size: 0.6rem;
+  color: var(--text-3);
+}
+
+/* ── Settings rows ── */
+.tu-dash-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.78rem;
+}
+.tu-dash-settings-row:last-child {
+  border-bottom: none;
+}
+
+.tu-dash-settings-label {
+  color: var(--text-2);
+}
+
+.tu-dash-settings-value {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.tu-dash-settings-value--mono {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-3);
+}
+
+.tu-dash-settings-badge {
+  padding: 2px 10px;
+  border-radius: var(--r-pill);
+  font-size: 0.65rem;
+  font-weight: 600;
+  background: var(--surface-2);
+  color: var(--text-3);
+}
+
+.tu-dash-settings-badge--ok {
+  background: rgba(78,201,176,0.15);
+  color: var(--emerald);
+}
+
+/* ── Theme toggle ── */
+.tu-dash-theme-toggle {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+}
+
+.tu-dash-theme-btn {
+  padding: 4px 14px;
+  font-size: 0.7rem;
+  font-family: inherit;
+  background: none;
+  border: none;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: background var(--t), color var(--t);
+}
+
+.tu-dash-theme-btn--active {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ── Hero card ── */
+.tu-dash-card--hero {
+  background: linear-gradient(135deg, var(--surface), var(--surface-2));
+  border-color: var(--accent);
+}
+
+.tu-dash-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.tu-dash-card-header .tu-dash-card-title {
+  margin: 0;
+}
+
+.tu-dash-card-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 0.68rem;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: var(--r-sm);
+  transition: background var(--t);
+}
+.tu-dash-card-link:hover {
+  background: rgba(0,122,204,0.1);
+}
+
+.tu-dash-card-desc {
+  font-size: 0.72rem;
+  color: var(--text-3);
+  margin: 0 0 14px;
+  line-height: 1.4;
+}
+
+/* ── Level next badge ── */
+.tu-dash-level-next {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.tu-dash-level-next-label {
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-3);
+}
+
+.tu-dash-level-next-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+/* ── Level milestones ── */
+.tu-dash-milestones {
+  display: flex;
+  gap: 4px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.tu-dash-milestone {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  transition: all var(--t);
+}
+
+.tu-dash-milestone--done {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 6px var(--accent-glow);
+}
+
+/* ── Sidebar XP bar ── */
+.tu-dash-sidebar-xp {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px 12px;
+  border-bottom: 1px solid var(--sidebar-border);
+}
+
+.tu-dash-sidebar-xp-track {
+  flex: 1;
+  height: 4px;
+  background: var(--xp-bar-bg);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.tu-dash-sidebar-xp-fill {
+  height: 100%;
+  background: var(--xp-bar-fill);
+  border-radius: 2px;
+  transition: width 0.5s ease;
+}
+
+.tu-dash-sidebar-xp-text {
+  font-size: 0.6rem;
+  color: var(--text-3);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+/* ── Sidebar stats ── */
+.tu-dash-sidebar-stats {
+  padding: 12px 16px;
+  border-top: 1px solid var(--sidebar-border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tu-dash-sidebar-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.68rem;
+  color: var(--text-3);
+}
+
+/* ── Nav badge ── */
+.tu-dash-nav-badge {
+  margin-left: auto;
+  font-size: 0.58rem;
+  font-family: var(--font-mono);
+  color: var(--accent);
+  background: rgba(0,122,204,0.12);
+  padding: 1px 6px;
+  border-radius: var(--r-pill);
+  font-weight: 600;
+}
+
+/* ── Achievements preview ── */
+.tu-dash-achievements-preview {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tu-dash-achievement-mini {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--surface-2);
+  border-radius: var(--r-sm);
+  font-size: 0.75rem;
+  color: var(--text);
+}
+
+.tu-dash-achievement-check {
+  font-size: 0.58rem;
+  color: var(--emerald);
+  font-weight: 600;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ── Achievement progress bar ── */
+.tu-dash-ach-progress {
+  height: 6px;
+  background: var(--surface-2);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.tu-dash-ach-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--emerald));
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+/* ── Profile card (large) ── */
+.tu-dash-card--profile {
+  padding: 28px;
+}
+
+.tu-dash-profile-large {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.tu-dash-avatar-large {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  box-shadow: 0 0 20px var(--accent-glow);
+}
+
+.tu-dash-profile-large-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tu-dash-profile-large-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tu-dash-profile-large-email {
+  font-size: 0.72rem;
+  color: var(--text-3);
+}
+
+.tu-dash-profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tu-dash-profile-edit-btn {
+  background: none;
+  border: none;
+  color: var(--text-3);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  transition: color var(--t), background var(--t);
+}
+.tu-dash-profile-edit-btn:hover {
+  color: var(--accent);
+  background: rgba(0,122,204,0.1);
+}
+
+.tu-dash-profile-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tu-dash-profile-input {
+  padding: 4px 8px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  outline: none;
+  width: 180px;
+}
+.tu-dash-profile-input:focus {
+  border-color: var(--accent);
+}
+
+.tu-dash-profile-save-btn {
+  padding: 4px 12px;
+  font-size: 0.7rem;
+  font-family: inherit;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--r-sm);
+  color: #fff;
+  cursor: pointer;
+  transition: background var(--t);
+}
+.tu-dash-profile-save-btn:hover {
+  background: var(--accent-hover);
+}
+
+.tu-dash-profile-cancel-btn {
+  padding: 4px 10px;
+  font-size: 0.7rem;
+  font-family: inherit;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--text-3);
+  cursor: pointer;
+  transition: background var(--t), color var(--t);
+}
+.tu-dash-profile-cancel-btn:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+/* ── Persona grid ── */
+.tu-dash-persona-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.tu-dash-persona-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--text-2);
+  transition: border-color var(--t), background var(--t), box-shadow var(--t);
+  position: relative;
+}
+.tu-dash-persona-card:hover {
+  border-color: var(--accent);
+  background: var(--surface-2);
+}
+
+.tu-dash-persona-card--active {
+  border-color: var(--accent);
+  background: rgba(0,122,204,0.08);
+  box-shadow: 0 0 8px var(--accent-glow);
+}
+
+.tu-dash-persona-icon {
+  font-size: 1.6rem;
+}
+
+.tu-dash-persona-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tu-dash-persona-check {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  font-size: 0.7rem;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* ── Quest badge ── */
+.tu-dash-quest-badge {
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: var(--emerald);
+  background: rgba(78,201,176,0.15);
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+/* ── Discovered progress ── */
+.tu-dash-discovered-progress {
+  height: 6px;
+  background: var(--surface-2);
+  border-radius: 3px;
+  overflow: hidden;
+  margin: 10px 0 14px;
+}
+
+.tu-dash-discovered-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+/* ── History dot ── */
+.tu-dash-history-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .tu-dash {
+    grid-template-columns: 1fr;
+  }
+  .tu-dash-sidebar {
+    display: none;
+  }
+  .tu-dash-content {
+    padding: 20px 16px;
+  }
+  .tu-dash-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .tu-dash-row {
+    grid-template-columns: 1fr;
+  }
+}

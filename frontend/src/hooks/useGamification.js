@@ -22,9 +22,10 @@ function today() {
 function pickDailyQuest(completed = []) {
   const available = QUEST_TEMPLATES.filter(q => !completed.includes(q.id))
   const pool = available.length > 0 ? available : QUEST_TEMPLATES
-  // Deterministic daily pick based on date
-  const seed = Date.now() / 86400000 | 0
-  return pool[seed % pool.length]
+  // Deterministic daily pick — hash the day number for better distribution
+  const day = Date.now() / 86400000 | 0
+  const hash = ((day * 2654435761) >>> 0) // Knuth multiplicative hash
+  return pool[hash % pool.length]
 }
 
 function getLevel(xp) {
@@ -144,6 +145,7 @@ export default function useGamification() {
       const translateOpts = TOOLS.find(t => t.id === 'translate')?.options || []
       const langCount = translateOpts.filter(([v]) => toolsUsed['translate'] && prev.discoveredTools.includes('translate')).length
 
+      const hour = new Date().getHours()
       const achieveState = {
         totalOps,
         discoveredTools,
@@ -156,6 +158,8 @@ export default function useGamification() {
         totalChars,
         favoritesCount: prev.favorites.length,
         savedPipelines: prev.savedPipelines.length,
+        nightOwl: hour >= 0 && hour < 5,
+        earlyBird: hour >= 5 && hour < 7,
       }
 
       // Check for new achievements

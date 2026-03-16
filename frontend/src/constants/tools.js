@@ -183,30 +183,73 @@ export const SEARCH_INTENTS = [
 
 // ── Achievement Definitions ────────────────────────────────
 export const ACHIEVEMENTS = [
-  { id: 'first_step',     label: 'First Step',     description: 'Use your first tool',              icon: '🎯', condition: (s) => s.totalOps >= 1 },
-  { id: 'explorer_25',    label: 'Explorer',        description: 'Discover 25 different tools',      icon: '🗺️', condition: (s) => s.discoveredTools.length >= 25 },
-  { id: 'completionist',  label: 'Completionist',   description: 'Discover all 70+ tools',           icon: '🏆', condition: (s) => s.discoveredTools.length >= 70 },
-  { id: 'chain_master',   label: 'Chain Master',    description: 'Use 3+ tools in one session',      icon: '⛓️', condition: (s) => s.sessionOps >= 3 },
-  { id: 'speed_demon',    label: 'Speed Demon',     description: 'Apply 5 tools in under 60 seconds', icon: '⚡', condition: (s) => s.speedCount >= 5 },
-  { id: 'ai_explorer',    label: 'AI Explorer',     description: 'Use 10 different AI tools',        icon: '🤖', condition: (s) => s.aiToolsUsed >= 10 },
-  { id: 'code_wrangler',  label: 'Code Wrangler',   description: 'Use 5 developer tools',            icon: '💻', condition: (s) => s.devToolsUsed >= 5 },
-  { id: 'polyglot',       label: 'Polyglot',        description: 'Translate to 5 different languages', icon: '🌍', condition: (s) => s.languagesUsed >= 5 },
-  { id: 'streak_star',    label: 'Streak Star',     description: 'Maintain a 7-day streak',          icon: '🔥', condition: (s) => s.streak >= 7 },
-  { id: 'word_crafter',   label: 'Word Crafter',    description: 'Process 10,000+ characters',       icon: '✍️', condition: (s) => s.totalChars >= 10000 },
-  { id: 'favorite_fan',   label: 'Favorite Fan',    description: 'Star 5 tools as favorites',        icon: '⭐', condition: (s) => s.favoritesCount >= 5 },
-  { id: 'pipeline_pro',   label: 'Pipeline Pro',    description: 'Save 3 pipelines',                 icon: '🔗', condition: (s) => s.savedPipelines >= 3 },
+  // Getting started
+  { id: 'first_step',     label: 'First Step',       description: 'Use your first tool',                icon: '🎯', condition: (s) => s.totalOps >= 1 },
+  { id: 'getting_warmed', label: 'Getting Warmed Up', description: 'Perform 10 operations',             icon: '🌱', condition: (s) => s.totalOps >= 10 },
+  { id: 'power_user',     label: 'Power User',       description: 'Perform 100 operations',             icon: '💪', condition: (s) => s.totalOps >= 100 },
+  { id: 'unstoppable',    label: 'Unstoppable',      description: 'Perform 500 operations',             icon: '🚀', condition: (s) => s.totalOps >= 500 },
+  // Discovery
+  { id: 'explorer_10',    label: 'Curious Mind',     description: 'Discover 10 different tools',         icon: '🔍', condition: (s) => s.discoveredTools.length >= 10 },
+  { id: 'explorer_25',    label: 'Explorer',         description: 'Discover 25 different tools',         icon: '🗺️', condition: (s) => s.discoveredTools.length >= 25 },
+  { id: 'explorer_50',    label: 'Pathfinder',       description: 'Discover 50 different tools',         icon: '🧭', condition: (s) => s.discoveredTools.length >= 50 },
+  { id: 'completionist',  label: 'Completionist',    description: 'Discover all 70+ tools',              icon: '🏆', condition: (s) => s.discoveredTools.length >= 70 },
+  // Speed & sessions
+  { id: 'chain_master',   label: 'Chain Master',     description: 'Use 3+ tools in one session',         icon: '⛓️', condition: (s) => s.sessionOps >= 3 },
+  { id: 'marathon',       label: 'Marathon',         description: 'Use 10+ tools in one session',        icon: '🏃', condition: (s) => s.sessionOps >= 10 },
+  { id: 'speed_demon',    label: 'Speed Demon',      description: 'Apply 5 tools in under 60 seconds',   icon: '⚡', condition: (s) => s.speedCount >= 5 },
+  // Categories
+  { id: 'ai_explorer',    label: 'AI Explorer',      description: 'Use 10 different AI tools',           icon: '🤖', condition: (s) => s.aiToolsUsed >= 10 },
+  { id: 'code_wrangler',  label: 'Code Wrangler',    description: 'Use 5 developer tools',               icon: '💻', condition: (s) => s.devToolsUsed >= 5 },
+  { id: 'polyglot',       label: 'Polyglot',         description: 'Translate to 5 different languages',   icon: '🌍', condition: (s) => s.languagesUsed >= 5 },
+  // Streaks
+  { id: 'streak_3',       label: 'On a Roll',        description: 'Maintain a 3-day streak',             icon: '🔥', condition: (s) => s.streak >= 3 },
+  { id: 'streak_star',    label: 'Streak Star',      description: 'Maintain a 7-day streak',             icon: '🔥', condition: (s) => s.streak >= 7 },
+  { id: 'streak_legend',  label: 'Streak Legend',    description: 'Maintain a 30-day streak',            icon: '👑', condition: (s) => s.streak >= 30 },
+  // Volume
+  { id: 'word_crafter',   label: 'Word Crafter',     description: 'Process 10,000+ characters',          icon: '✍️', condition: (s) => s.totalChars >= 10000 },
+  { id: 'novelist',       label: 'Novelist',         description: 'Process 100,000+ characters',         icon: '📖', condition: (s) => s.totalChars >= 100000 },
+  // Social
+  { id: 'favorite_fan',   label: 'Favorite Fan',     description: 'Star 5 tools as favorites',           icon: '⭐', condition: (s) => s.favoritesCount >= 5 },
+  { id: 'pipeline_pro',   label: 'Pipeline Pro',     description: 'Save 3 pipelines',                    icon: '🔗', condition: (s) => s.savedPipelines >= 3 },
+  { id: 'night_owl',      label: 'Night Owl',        description: 'Use a tool after midnight',           icon: '🦉', condition: (s) => s.nightOwl },
+  { id: 'early_bird',     label: 'Early Bird',       description: 'Use a tool before 7 AM',              icon: '🐦', condition: (s) => s.earlyBird },
 ]
 
 // ── Quest Templates ────────────────────────────────
 export const QUEST_TEMPLATES = [
+  // Combo quests
   { id: 'combo_ai_transform', text: 'Use an AI tool + a Transform tool',       xp: 50, check: (ops) => ops.some(o => o.tab === 'ai') && ops.some(o => o.tab === 'transform') },
-  { id: 'try_new_tool',       text: 'Try a tool you\'ve never used before',    xp: 50, check: (ops) => ops.some(o => o.isNew) },
-  { id: 'use_3_categories',   text: 'Use tools from 3 different categories',   xp: 50, check: (ops) => new Set(ops.map(o => o.tab)).size >= 3 },
-  { id: 'pipeline_3',         text: 'Apply 3+ tools to the same text',         xp: 50, check: (ops) => ops.length >= 3 },
+  { id: 'combo_writing_code', text: 'Use a Writing tool + a Code tool',        xp: 50, check: (ops) => ops.some(o => o.tab === 'writing') && ops.some(o => o.tab === 'code') },
   { id: 'paraphrase_tone',    text: 'Use Paraphrase + Change Tone',            xp: 50, check: (ops) => ops.some(o => o.id === 'paraphrase') && ops.some(o => o.id === 'change_tone') },
-  { id: 'encode_decode',      text: 'Encode and then Decode something',        xp: 50, check: (ops) => ops.some(o => o.id?.includes('_enc')) && ops.some(o => o.id?.includes('_dec')) },
   { id: 'grammar_proofread',  text: 'Use Fix Grammar + Proofread',             xp: 50, check: (ops) => ops.some(o => o.id === 'fix_grammar') && ops.some(o => o.id === 'proofread') },
+  { id: 'encode_decode',      text: 'Encode and then Decode something',        xp: 50, check: (ops) => ops.some(o => o.id?.includes('_enc')) && ops.some(o => o.id?.includes('_dec')) },
+  { id: 'upper_lower',        text: 'Use UPPERCASE + Lowercase on text',       xp: 40, check: (ops) => ops.some(o => o.id === 'uppercase') && ops.some(o => o.id === 'lowercase') },
+  { id: 'eli5_summarize',     text: 'Use ELI5 + Summarize on text',            xp: 50, check: (ops) => ops.some(o => o.id === 'eli5') && ops.some(o => o.id === 'summarize') },
+  { id: 'translate_tone',     text: 'Translate text + Change its Tone',         xp: 60, check: (ops) => ops.some(o => o.id === 'translate') && ops.some(o => o.id === 'change_tone') },
+  // Discovery quests
+  { id: 'try_new_tool',       text: 'Try a tool you\'ve never used before',    xp: 50, check: (ops) => ops.some(o => o.isNew) },
+  { id: 'try_2_new',          text: 'Discover 2 new tools today',              xp: 75, check: (ops) => ops.filter(o => o.isNew).length >= 2 },
+  { id: 'try_3_new',          text: 'Discover 3 new tools today',              xp: 100, check: (ops) => ops.filter(o => o.isNew).length >= 3 },
+  // Category quests
+  { id: 'use_3_categories',   text: 'Use tools from 3 different categories',   xp: 50, check: (ops) => new Set(ops.map(o => o.tab)).size >= 3 },
+  { id: 'use_4_categories',   text: 'Use tools from 4 different categories',   xp: 75, check: (ops) => new Set(ops.map(o => o.tab)).size >= 4 },
+  { id: 'all_transform',      text: 'Use 3 different Transform tools',         xp: 50, check: (ops) => new Set(ops.filter(o => o.tab === 'transform').map(o => o.id)).size >= 3 },
+  { id: 'all_writing',        text: 'Use 3 different Writing tools',           xp: 50, check: (ops) => new Set(ops.filter(o => o.tab === 'writing').map(o => o.id)).size >= 3 },
+  { id: 'all_ai',             text: 'Use 3 different AI tools',                xp: 60, check: (ops) => new Set(ops.filter(o => o.tab === 'ai').map(o => o.id)).size >= 3 },
+  // Volume quests
+  { id: 'pipeline_3',         text: 'Apply 3+ tools to the same text',         xp: 50, check: (ops) => ops.length >= 3 },
+  { id: 'pipeline_5',         text: 'Apply 5+ tools in one session',           xp: 75, check: (ops) => ops.length >= 5 },
+  { id: 'pipeline_10',        text: 'Use 10 tools in a single session',        xp: 100, check: (ops) => ops.length >= 10 },
+  { id: 'speed_burst',        text: 'Use 3 tools within 60 seconds',           xp: 60, check: (ops) => { if (ops.length < 3) return false; const r = ops.slice(-3); return (r[2].time - r[0].time) < 60000 } },
+  // Specific tool quests
   { id: 'export_something',   text: 'Export your text in any format',          xp: 50, check: (ops) => ops.some(o => o.id?.startsWith('save_')) },
+  { id: 'use_word_freq',      text: 'Analyze your text with Word Frequency',   xp: 40, check: (ops) => ops.some(o => o.id === 'word_frequency') },
+  { id: 'use_title_gen',      text: 'Generate a title for your text',          xp: 40, check: (ops) => ops.some(o => o.id === 'title_generator') },
+  { id: 'use_json_format',    text: 'Format some JSON or code',                xp: 40, check: (ops) => ops.some(o => o.id === 'json_format' || o.id === 'format_code') },
+  { id: 'use_markdown',       text: 'Convert text to Markdown',                xp: 40, check: (ops) => ops.some(o => o.id === 'markdown') },
+  { id: 'use_slug',           text: 'Generate a URL slug from text',           xp: 40, check: (ops) => ops.some(o => o.id === 'slug') },
+  { id: 'use_lorem',          text: 'Generate some Lorem Ipsum text',          xp: 30, check: (ops) => ops.some(o => o.id === 'lorem_ipsum') },
+  { id: 'use_reverse',        text: 'Reverse your text for fun',               xp: 30, check: (ops) => ops.some(o => o.id === 'reverse') },
 ]
 
 // ── Level Thresholds ────────────────────────────────

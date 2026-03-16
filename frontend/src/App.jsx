@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import AboutPage from './pages/AboutPage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import DashboardPage from './pages/DashboardPage';
 import OnboardingModal from './components/OnboardingModal';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useAlert } from './hooks/useAlert';
@@ -49,6 +50,10 @@ function App() {
         <Route
           path={ROUTES.SIGNUP}
           element={<SignupPage showAlert={showAlert} />}
+        />
+        <Route
+          path={ROUTES.DASHBOARD}
+          element={<DashboardPage gamification={gamification} user={user} isAuthenticated={isAuthenticated} showAlert={showAlert} mode={mode} setMode={setMode} />}
         />
       </Routes>
     </Router>

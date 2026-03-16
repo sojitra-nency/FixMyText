@@ -214,12 +214,12 @@
   border-color: var(--accent);
 }
 
-/* Favorite star */
+/* Favorite heart */
 .tu-titem-fav {
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 0.72rem;
+  font-size: 1rem;
   opacity: 0;
   transition: opacity var(--t);
   padding: 0;
@@ -238,7 +238,22 @@
 
 .tu-titem-fav--active {
   opacity: 1 !important;
-  color: var(--amber);
+  color: var(--rose);
+  transition: opacity var(--t), transform 0.2s ease, color 0.2s ease;
+}
+
+.tu-titem-fav--active:hover {
+  transform: scale(1.35);
+  color: var(--text-3);
+  animation: heart-shake 0.4s ease;
+}
+
+@keyframes heart-shake {
+  0%   { transform: scale(1.35); }
+  25%  { transform: scale(1.35) rotate(-12deg); }
+  50%  { transform: scale(1.35) rotate(12deg); }
+  75%  { transform: scale(1.35) rotate(-6deg); }
+  100% { transform: scale(1.35) rotate(0deg); }
 }
 
 /* ── Responsive: hide panel on mobile ─────────────── */
