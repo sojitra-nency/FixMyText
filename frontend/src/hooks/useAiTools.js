@@ -29,7 +29,11 @@ export default function useAiTools(text, setText, setMarkdownMode, setPreviewMod
             if (pushHistory) pushHistory(label, original, data.result)
             showAlert(`${label} generated`, 'success')
         } catch (err) {
-            showAlert(err.data?.detail || errorMsg, 'danger')
+            if (err.status === 429) {
+                showAlert(err.data?.detail || 'Daily AI limit reached. Upgrade to Pro for unlimited access.', 'warning')
+            } else {
+                showAlert(err.data?.detail || errorMsg, 'danger')
+            }
         }
     }
 

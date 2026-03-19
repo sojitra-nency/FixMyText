@@ -53,6 +53,7 @@ const ACTIVITY_ICONS = {
     language: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
     encode: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
     export: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
+    all: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,
 }
 
 // Drawer panel metadata (static — no need to recreate per render)
@@ -136,6 +137,7 @@ export default function TextForm(props) {
     const suggestions = useSmartSuggestions(text)
     const search = useToolSearch()
     const trial = useTrialLimit(props.isAuthenticated)
+    const subscription = props.subscription
 
     // Resizable panels
     const splitRef = useRef(null)
@@ -422,27 +424,36 @@ export default function TextForm(props) {
     const executeToolAction = useCallback((tool) => {
         if (!tool) return
         if (!trial.checkTrial()) return
+
+        // Unified tool access check (all tool types: ai, api, local, action, select)
+        if (subscription?.checkToolAccess && !subscription.checkToolAccess(tool)) return
+
         gamification.recordToolUse(tool.id, text.length)
 
         if (tool.type === 'api') {
             callApi(tool.endpoint, tool.successMsg).then(res => {
                 if (res?.success) pipeline.addStep(tool.id, tool.label, res.result)
+                if (subscription?.refetchStatus) subscription.refetchStatus()
             })
         } else if (tool.type === 'ai' || tool.type === 'local' || tool.type === 'action' || tool.type === 'select') {
             const handler = handlerMap[tool.handlerKey]
             if (handler) {
                 const result = handler()
                 if (result && typeof result.then === 'function') {
-                    result.then(() => pipeline.addStep(tool.id, tool.label))
+                    result.then(() => {
+                        pipeline.addStep(tool.id, tool.label)
+                        if (subscription?.refetchStatus) subscription.refetchStatus()
+                    })
                 } else {
                     pipeline.addStep(tool.id, tool.label)
+                    if (subscription?.refetchStatus) subscription.refetchStatus()
                 }
             }
         } else if (tool.type === 'drawer') {
             togglePanel(tool.panelId)
         }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [text, gamification.recordToolUse, trial.checkTrial])
+    }, [text, gamification.recordToolUse, trial.checkTrial, subscription?.checkToolAccess])
 
     // ── Unified tool click handler ──────────────────────────
     const handleToolClick = useCallback((tool) => {
@@ -554,6 +565,14 @@ export default function TextForm(props) {
                         {ACTIVITY_ICONS[tab.id] || <span>{tab.icon}</span>}
                     </button>
                 ))}
+                {/* What's New */}
+                <button
+                    className={`tu-activity-btn${activeTab === '_new' && sidebarOpen ? ' tu-activity-btn--active' : ''}`}
+                    onClick={() => handleActivityClick('_new')}
+                    data-tooltip="What's New"
+                >
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </button>
                 {/* Favourites */}
                 <button
                     className={`tu-activity-btn${activeTab === '_favourites' && sidebarOpen ? ' tu-activity-btn--active' : ''}`}
@@ -594,7 +613,7 @@ export default function TextForm(props) {
             <div className="tu-forge-sidebar">
                 <div className="tu-sidebar-header">
                     <span title="~/FixMyText/workspace/tools">
-                        {activeTab === '_templates' ? 'Templates' : activeTab === '_history' ? 'History' : activeTab === '_favourites' ? 'Favourites' : USE_CASE_TABS.find(t => t.id === activeTab)?.label || 'Explorer'}
+                        {activeTab === '_new' ? "What's New" : activeTab === '_templates' ? 'Templates' : activeTab === '_history' ? 'History' : activeTab === '_favourites' ? 'Favourites' : USE_CASE_TABS.find(t => t.id === activeTab)?.label || 'Explorer'}
                     </span>
                     <div className="tu-sidebar-header-actions">
                         <button
@@ -647,6 +666,34 @@ export default function TextForm(props) {
                                                     onClick={e => { e.stopPropagation(); gamification?.toggleFavorite(tool.id) }}
                                                     title="Remove from favourites"
                                                 >♥</button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )
+                })()}
+
+                {/* What's New panel */}
+                {activeTab === '_new' && (() => {
+                    const discovered = gamification?.discoveredTools || []
+                    const newTools = TOOLS.filter(t =>
+                        !discovered.includes(t.id) && (t.tabs?.includes('ai') || t.tabs?.includes('code'))
+                    )
+                    return (
+                        <div className="tu-tpanel">
+                            {newTools.length === 0 ? (
+                                <div className="tu-sidebar-panel-empty">
+                                    You've discovered all tools!
+                                </div>
+                            ) : (
+                                <div className="tu-tpanel-list">
+                                    {newTools.map(tool => (
+                                        <div key={tool.id} className="tu-titem-wrap">
+                                            <div className="tu-titem" onClick={() => handleToolClick(tool)}>
+                                                <span className={`tu-titem-icon tu-titem-icon--${tool.color}`}>{tool.icon}</span>
+                                                <span className="tu-titem-name">{tool.label}</span>
                                             </div>
                                         </div>
                                     ))}
@@ -762,6 +809,20 @@ export default function TextForm(props) {
                             style={{ width: `${gamification.xpProgress || 0}%` }}
                         />
                     </div>
+
+                    {/* Subscription Status */}
+                    {subscription?.isPro && (
+                        <div className="tu-sf-row tu-sf-ai-usage">
+                            <span className="tu-sf-label tu-sf-label--pro">PRO</span>
+                            <span className="tu-sf-value">Unlimited</span>
+                        </div>
+                    )}
+                    {subscription && props.isAuthenticated && !subscription.isPro && subscription.totalCredits > 0 && (
+                        <div className="tu-sf-row tu-sf-ai-usage">
+                            <span className="tu-sf-label">Credits</span>
+                            <span className="tu-sf-value">{subscription.totalCredits}</span>
+                        </div>
+                    )}
 
                     {/* Streak + Discovery */}
                     <div className="tu-sf-stats">
@@ -1151,6 +1212,15 @@ export default function TextForm(props) {
                         <span className="tu-settings-item-label">Dashboard</span>
                         <span className="tu-settings-item-hint">Stats & settings</span>
                     </button>
+
+                    {/* Upgrade to Pro — shown for authenticated free-tier users */}
+                    {props.isAuthenticated && subscription && !subscription.isPro && (
+                        <button className="tu-settings-item tu-settings-item--accent" onClick={() => { setSettingsOpen(false); navigate('/pricing') }}>
+                            <span className="tu-settings-item-icon">⚡</span>
+                            <span className="tu-settings-item-label">Upgrade to Pro</span>
+                            <span className="tu-settings-item-hint">View plans & pricing</span>
+                        </button>
+                    )}
 
                     {/* Keyboard shortcuts info */}
                     <button className="tu-settings-item" onClick={() => { showAlert('Ctrl+F: Search tools | Ctrl+Z: Undo | Ctrl+Shift+Z: Redo', 'info'); setSettingsOpen(false) }}>

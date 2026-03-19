@@ -1,10 +1,13 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { TOOLS, ACHIEVEMENTS, LEVELS, PERSONAS, QUEST_TEMPLATES, USE_CASE_TABS } from '../constants/tools'
 
-export default function DashboardPage({ gamification, user, isAuthenticated, showAlert, mode, setMode }) {
+export default function DashboardPage({ gamification, user, isAuthenticated, showAlert, mode, setMode, subscription }) {
     const navigate = useNavigate()
-    const [activeSection, setActiveSection] = useState('overview')
+    const [searchParams, setSearchParams] = useSearchParams()
+    const [activeSection, setActiveSection] = useState(() => {
+        return searchParams.get('tab') || 'overview'
+    })
     const [editingName, setEditingName] = useState(false)
     const [nameInput, setNameInput] = useState(user?.display_name || '')
     const nameRef = useRef(null)
@@ -13,6 +16,32 @@ export default function DashboardPage({ gamification, user, isAuthenticated, sho
     const level = g?.level || LEVELS[0]
     const nextLevel = g?.nextLevel || LEVELS[1]
     const xpProgress = g?.xpProgress || 0
+
+    // Handle payment redirect — auto-open subscription tab and show result
+    useEffect(() => {
+        const upgrade = searchParams.get('upgrade')
+        const purchase = searchParams.get('purchase')
+        if (upgrade === 'success') {
+            setActiveSection('subscription')
+            showAlert('Welcome to Pro! Your subscription is active.', 'success')
+            subscription?.refetchStatus?.()
+        } else if (upgrade === 'verify-failed') {
+            setActiveSection('subscription')
+            showAlert('Payment received but verification failed. Please contact support if your plan is not active.', 'error')
+        } else if (upgrade === 'cancelled') {
+            setActiveSection('subscription')
+        } else if (purchase === 'success') {
+            setActiveSection('subscription')
+            showAlert('Purchase successful! Your pass or credits are now active.', 'success')
+            subscription?.refetchStatus?.()
+        } else if (purchase === 'verify-failed') {
+            setActiveSection('subscription')
+            showAlert('Payment received but verification failed. Please contact support if your purchase is not reflected.', 'error')
+        }
+        if (upgrade || purchase) {
+            setSearchParams({}, { replace: true })
+        }
+    }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         if (editingName && nameRef.current) {
@@ -59,6 +88,7 @@ export default function DashboardPage({ gamification, user, isAuthenticated, sho
 
     const sections = [
         { id: 'overview', label: 'Overview', icon: '📊' },
+        { id: 'subscription', label: 'Subscription', icon: '⚡' },
         { id: 'profile', label: 'Profile', icon: '👤' },
         { id: 'achievements', label: 'Achievements', icon: '🏆' },
         { id: 'favorites', label: 'Favorites', icon: '❤️' },
@@ -275,6 +305,79 @@ export default function DashboardPage({ gamification, user, isAuthenticated, sho
                                 </div>
                             </div>
                         )}
+                    </div>
+                )}
+
+                {/* ─── Subscription ─── */}
+                {activeSection === 'subscription' && (
+                    <div className="tu-dash-content">
+                        <h2 className="tu-dash-title">Subscription</h2>
+                        <p className="tu-dash-subtitle">Manage your plan and billing</p>
+
+                        <div className="tu-dash-sub-card">
+                            <div className={`tu-dash-sub-icon tu-dash-sub-icon--${subscription?.isPro ? 'pro' : 'free'}`}>
+                                {subscription?.isPro ? '⚡' : '🆓'}
+                            </div>
+                            <div className="tu-dash-sub-info">
+                                <span className={`tu-dash-sub-tier${subscription?.isPro ? ' tu-dash-sub-tier--pro' : ''}`}>
+                                    {subscription?.isPro ? 'Pro Plan' : 'Free Plan'}
+                                </span>
+                                <span className="tu-dash-sub-detail">
+                                    {subscription?.isPro
+                                        ? 'Unlimited access to all tools'
+                                        : `3 free uses per tool per day${subscription?.totalCredits ? ` · ${subscription.totalCredits} credits` : ''}`
+                                    }
+                                </span>
+                            </div>
+                            <div className="tu-dash-sub-actions">
+                                {subscription?.isPro ? (
+                                    <button
+                                        className="tu-dash-sub-btn tu-dash-sub-btn--manage"
+                                        onClick={() => { if (window.confirm('Cancel your Pro subscription? You will lose unlimited access at the end of the current billing period.')) subscription.handleCancelSubscription() }}
+                                        disabled={subscription.cancelLoading}
+                                    >
+                                        {subscription.cancelLoading ? 'Cancelling...' : 'Cancel Subscription'}
+                                    </button>
+                                ) : (
+                                    <button
+                                        className="tu-dash-sub-btn tu-dash-sub-btn--upgrade"
+                                        onClick={subscription.handleUpgrade}
+                                        disabled={subscription.upgradeLoading}
+                                    >
+                                        {subscription.upgradeLoading ? 'Loading...' : 'Upgrade to Pro'}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Plan comparison */}
+                        <div className="tu-dash-card">
+                            <h3 className="tu-dash-card-title">Plan Comparison</h3>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+                                <thead>
+                                    <tr style={{ borderBottom: '1px solid var(--border, #3c3c3c)' }}>
+                                        <th style={{ textAlign: 'left', padding: '8px', color: 'var(--text-muted)' }}>Feature</th>
+                                        <th style={{ textAlign: 'center', padding: '8px', color: 'var(--text-muted)' }}>Free</th>
+                                        <th style={{ textAlign: 'center', padding: '8px', color: 'var(--accent, #007acc)' }}>Pro</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {[
+                                        ['All Tools', '3 uses/day per tool', 'Unlimited'],
+                                        ['Local Tools', 'All', 'All'],
+                                        ['Gamification', 'Full', 'Full'],
+                                        ['Templates', 'Full', 'Full'],
+                                        ['Priority Support', '—', '✓'],
+                                    ].map(([feature, free, pro]) => (
+                                        <tr key={feature} style={{ borderBottom: '1px solid var(--border, #3c3c3c)' }}>
+                                            <td style={{ padding: '8px', color: 'var(--text)' }}>{feature}</td>
+                                            <td style={{ padding: '8px', textAlign: 'center', color: 'var(--text-muted)' }}>{free}</td>
+                                            <td style={{ padding: '8px', textAlign: 'center', color: 'var(--text)' }}>{pro}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 )}
 

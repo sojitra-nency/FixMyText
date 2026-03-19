@@ -8,14 +8,36 @@
 #   docker compose --profile dev up --build     # dev
 #   docker compose --profile prod up --build    # prod
 #
-# Or via npm:
-#   npm run docker:dev    # dev stack
-#   npm run docker:up     # prod stack
-
 services:
 
   # ══════════════════════════════════════════════════════════════════════════
-  # DEV  —  profile: fixmytext-dev
+  # DATABASE  —  shared across profiles
+  # ══════════════════════════════════════════════════════════════════════════
+
+  db-service:
+    image: pgvector/pgvector:pg16
+    container_name: fixmytext-db
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: fixmytext
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fixmytext_dev}
+      POSTGRES_DB: fixmytext
+    volumes:
+      - fixmytext-pgdata:/var/lib/postgresql/data
+    networks:
+      - fixmytext-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fixmytext -d fixmytext"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # DEV  —  profile: dev
   # ══════════════════════════════════════════════════════════════════════════
 
   backend-dev:
@@ -29,18 +51,17 @@ services:
     volumes:
       - ./backend:/app      # mount source — uvicorn --reload picks up changes
       - /app/.venv          # anonymous volume keeps host .venv out of the container
-      - fixmytext-data:/app/data
     env_file:
       - ./backend/.env
     environment:
       - HOST=0.0.0.0
       - PORT=8000
       - DEBUG=true
-      - ALLOWED_ORIGINS=["http://localhost:3000","http://127.0.0.1:3000"]
-      - DATABASE_URL=sqlite+aiosqlite:///./data/fixmytext.db
-      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+      - DATABASE_URL=postgresql+asyncpg://fixmytext:${POSTGRES_PASSWORD:-fixmytext_dev}@db-service:5432/fixmytext
+    depends_on:
+      db-service:
+        condition: service_healthy
     networks:
       - fixmytext-net
 
@@ -65,7 +86,7 @@ services:
 
 
   # ══════════════════════════════════════════════════════════════════════════
-  # PROD  —  profile: fixmytext-prod
+  # PROD  —  profile: prod
   # ══════════════════════════════════════════════════════════════════════════
 
   backend-prod:
@@ -78,19 +99,18 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
-    volumes:
-      - fixmytext-data:/app/data
     env_file:
       - ./backend/.env
     environment:
       - HOST=0.0.0.0
       - PORT=8000
       - DEBUG=false
-      - ALLOWED_ORIGINS=["http://localhost:3000","http://frontend-prod:80"]
-      - DATABASE_URL=sqlite+aiosqlite:///./data/fixmytext.db
-      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
+      - DATABASE_URL=postgresql+asyncpg://fixmytext:${POSTGRES_PASSWORD:-fixmytext_dev}@db-service:5432/fixmytext
+      - SECRET_KEY=${SECRET_KEY:-}
+    depends_on:
+      db-service:
+        condition: service_healthy
     networks:
       - fixmytext-net
     healthcheck:
@@ -108,7 +128,7 @@ services:
       dockerfile: Dockerfile
       target: runtime
       args:
-        VITE_API_URL: http://localhost:8000
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
     container_name: fixmytext-frontend-prod
     restart: unless-stopped
     ports:
@@ -133,4 +153,4 @@ networks:
 
 # ── Volumes ───────────────────────────────────────────────────────────────────
 volumes:
-  fixmytext-data:
+  fixmytext-pgdata:

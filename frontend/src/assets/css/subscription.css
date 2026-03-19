@@ -1,0 +1,248 @@
+/* ── Upgrade Modal ────────────────────────────────────────────────── */
+
+.tu-upgrade-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.tu-upgrade-modal {
+  position: relative;
+  width: 520px;
+  max-width: 94vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--editor-bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 32px 28px 24px;
+  text-align: center;
+}
+
+.tu-upgrade-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--text-3);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  line-height: 0;
+}
+.tu-upgrade-close:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.tu-upgrade-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #007acc33, #9b59b633);
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
+.tu-upgrade-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+
+.tu-upgrade-desc {
+  font-size: 13px;
+  color: var(--text-3);
+  margin: 0 0 24px;
+  line-height: 1.5;
+}
+.tu-upgrade-desc strong {
+  color: var(--accent);
+}
+
+.tu-upgrade-footer-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 11px;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+.tu-upgrade-footer-link:hover {
+  color: #005fa3;
+}
+
+/* ── Dashboard Subscription Card ─────────────────────────────────── */
+
+.tu-dash-sub-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  margin-bottom: 16px;
+}
+
+.tu-dash-sub-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.tu-dash-sub-icon--free {
+  background: var(--surface-2);
+}
+.tu-dash-sub-icon--pro {
+  background: linear-gradient(135deg, #007acc33, #9b59b633);
+}
+
+.tu-dash-sub-info {
+  flex: 1;
+}
+
+.tu-dash-sub-tier {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+.tu-dash-sub-tier--pro {
+  color: var(--accent);
+}
+
+.tu-dash-sub-detail {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 2px;
+}
+
+.tu-dash-sub-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.tu-dash-sub-btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.tu-dash-sub-btn--upgrade {
+  background: var(--accent);
+  color: #fff;
+}
+.tu-dash-sub-btn--upgrade:hover {
+  background: #005fa3;
+}
+.tu-dash-sub-btn--manage {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.tu-dash-sub-btn--manage:hover {
+  background: var(--border);
+}
+
+/* ── AI Usage Meter ──────────────────────────────────────────────── */
+
+.tu-dash-usage-meter {
+  margin-top: 12px;
+}
+
+.tu-dash-usage-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-3);
+  margin-bottom: 6px;
+}
+
+.tu-dash-usage-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.tu-dash-usage-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--accent);
+  transition: width 0.3s;
+}
+.tu-dash-usage-fill--warn {
+  background: #f0ad4e;
+}
+.tu-dash-usage-fill--full {
+  background: #e74c3c;
+}
+
+/* ── Settings Menu Accent Item ────────────────────────────────────── */
+
+.tu-settings-item--accent .tu-settings-item-label {
+  color: var(--accent);
+}
+.tu-settings-item--accent .tu-settings-item-icon {
+  color: var(--accent);
+}
+
+/* ── Sidebar AI Usage Row ─────────────────────────────────────────── */
+
+.tu-sf-ai-usage {
+  padding: 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.tu-sf-value--warn {
+  color: #f0ad4e !important;
+}
+
+.tu-sf-label--pro {
+  color: var(--accent) !important;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.tu-sf-upgrade-link {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 1px 4px;
+  border-radius: 3px;
+  margin-left: auto;
+}
+.tu-sf-upgrade-link:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+@media (max-width: 540px) {
+  .tu-upgrade-plans {
+    grid-template-columns: 1fr;
+  }
+}

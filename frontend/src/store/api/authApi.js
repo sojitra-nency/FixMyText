@@ -13,21 +13,26 @@ export const authApi = createApi({
       return headers
     },
   }),
+  tagTypes: ['Me'],
   endpoints: (builder) => ({
     register: builder.mutation({
       query: (body) => ({ url: '/api/v1/auth/register', method: 'POST', body }),
+      invalidatesTags: ['Me'],
     }),
     login: builder.mutation({
       query: (body) => ({ url: '/api/v1/auth/login', method: 'POST', body }),
+      invalidatesTags: ['Me'],
     }),
     logout: builder.mutation({
       query: () => ({ url: '/api/v1/auth/logout', method: 'POST' }),
     }),
     refresh: builder.mutation({
       query: () => ({ url: '/api/v1/auth/refresh', method: 'POST' }),
+      invalidatesTags: ['Me'],
     }),
     getMe: builder.query({
       query: () => '/api/v1/auth/me',
+      providesTags: ['Me'],
     }),
   }),
 })

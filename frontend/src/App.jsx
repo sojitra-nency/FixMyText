@@ -10,17 +10,21 @@ const AboutPage = lazy(() => import('./pages/AboutPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const SignupPage = lazy(() => import('./pages/SignupPage'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const PricingPage = lazy(() => import('./pages/PricingPage'));
 import { useAlert } from './hooks/useAlert';
 import { useTheme } from './hooks/useTheme';
 import { useAuth } from './hooks/useAuth';
 import useGamification from './hooks/useGamification';
+import useSubscription from './hooks/useSubscription';
+import PassPurchaseModal from './components/subscription/PassPurchaseModal';
 import { ROUTES } from './constants';
 
-function App() {
+function AppInner() {
   const { alert, alerts, showAlert, dismissAlert } = useAlert();
-  const { mode, setMode } = useTheme(showAlert);
+  const { mode, setMode } = useTheme();
   const { user, isAuthenticated } = useAuth();
   const gamification = useGamification();
+  const subscription = useSubscription({ showAlert });
 
   // Listen for global RTK Query errors from middleware
   useEffect(() => {
@@ -37,19 +41,25 @@ function App() {
   };
 
   return (
-    <Router>
+    <>
       {!gamification.onboarded && (
         <OnboardingModal onComplete={handleOnboardingComplete} />
       )}
 
       <Navbar showAlert={showAlert} />
       <Alert alerts={alerts} dismissAlert={dismissAlert} />
+      <PassPurchaseModal
+        show={subscription.showUpgradeModal}
+        onDismiss={subscription.dismissUpgradeModal}
+        blockedTool={subscription.blockedTool}
+        subscription={subscription}
+      />
       <Suspense fallback={null}>
         <Routes>
           <Route
             exact
             path={ROUTES.HOME}
-            element={<Home mode={mode} setMode={setMode} showAlert={showAlert} gamification={gamification} user={user} isAuthenticated={isAuthenticated} />}
+            element={<Home mode={mode} setMode={setMode} showAlert={showAlert} gamification={gamification} user={user} isAuthenticated={isAuthenticated} subscription={subscription} />}
           />
           <Route
             exact
@@ -65,11 +75,23 @@ function App() {
             element={<SignupPage showAlert={showAlert} />}
           />
           <Route
+            path={ROUTES.PRICING}
+            element={<PricingPage showAlert={showAlert} subscription={subscription} />}
+          />
+          <Route
             path={ROUTES.DASHBOARD}
-            element={<DashboardPage gamification={gamification} user={user} isAuthenticated={isAuthenticated} showAlert={showAlert} mode={mode} setMode={setMode} />}
+            element={<DashboardPage gamification={gamification} user={user} isAuthenticated={isAuthenticated} showAlert={showAlert} mode={mode} setMode={setMode} subscription={subscription} />}
           />
         </Routes>
       </Suspense>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppInner />
     </Router>
   );
 }

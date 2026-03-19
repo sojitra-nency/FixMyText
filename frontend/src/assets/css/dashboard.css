@@ -5,7 +5,7 @@
 .tu-dash {
   display: grid;
   grid-template-columns: 240px 1fr;
-  height: calc(100vh - 35px);
+  height: calc(100vh - 44px);
   background: var(--editor-bg);
   color: var(--editor-fg);
   overflow: hidden;

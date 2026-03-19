@@ -69,6 +69,13 @@ export default function Navbar(props) {
                     <span className="tu-titlebar-share-label">GitHub</span>
                 </a>
 
+                {/* Upgrade (when logged in, free tier) */}
+                {accessToken && (
+                    <Link className="tu-titlebar-upgrade d-none d-md-flex" to="/pricing" title="View plans & pricing">
+                        Upgrade
+                    </Link>
+                )}
+
                 {/* Sign In (when logged out) */}
                 {!accessToken && (
                     <Link className="tu-titlebar-signin" to="/login" title="Sign in">
@@ -94,6 +101,9 @@ export default function Navbar(props) {
                     </Link>
                     <Link className="tu-mobile-link" to="/about" onClick={() => setMenuOpen(false)}>
                         About
+                    </Link>
+                    <Link className="tu-mobile-link" to="/pricing" onClick={() => setMenuOpen(false)}>
+                        Pricing
                     </Link>
                     {!accessToken && (
                         <Link className="tu-mobile-link" to="/login" onClick={() => setMenuOpen(false)}>

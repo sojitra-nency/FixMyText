@@ -82,4 +82,7 @@ export const ENDPOINTS = {
   AUTH_REFRESH: '/api/v1/auth/refresh',
   AUTH_LOGOUT: '/api/v1/auth/logout',
   AUTH_ME: '/api/v1/auth/me',
+
+  // Subscription
+  SUBSCRIPTION_STATUS: '/api/v1/subscription/status',
 }

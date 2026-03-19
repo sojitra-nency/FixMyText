@@ -14,4 +14,7 @@
 @import './auth.css';
 @import './about.css';
 @import './dashboard.css';
+@import './subscription.css';
+@import './passes.css';
+@import './pricing.css';
 @import './utilities.css';

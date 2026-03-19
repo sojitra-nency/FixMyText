@@ -9,7 +9,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor-export': ['jspdf', 'docx', 'html2canvas'],
+          'vendor-export': ['jspdf', 'docx'],
           'vendor-format': ['prettier'],
         },
       },

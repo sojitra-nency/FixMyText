@@ -1,17 +1,93 @@
-import { useState, useRef, useCallback, useMemo, memo } from 'react'
+import { useState, useRef, useCallback, useMemo, memo, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { USE_CASE_TABS } from '../../constants/tools'
 
-function ToolPanelItem({ tool, disabled, onClick, isDiscovered, isFavorite, onToggleFavorite, isActive, isSuggested, ai, onHover, onLeave }) {
+/* ── Custom dropdown for select-type tools ─────────── */
+function SelectDropdown({ options, value, onChange, disabled, triggerRef }) {
+  const [open, setOpen] = useState(false)
+  const menuRef = useRef(null)
+  const [pos, setPos] = useState(null)
+
+  const selectedLabel = options.find(([v]) => v === value)?.[1] || value
+
+  const toggle = (e) => {
+    e.stopPropagation()
+    if (disabled) return
+    if (!open && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect()
+      const menuHeight = Math.min(options.length * 30 + 10, 240)
+      const spaceBelow = window.innerHeight - rect.bottom - 8
+      const showAbove = spaceBelow < menuHeight && rect.top > menuHeight
+
+      setPos({
+        left: rect.left,
+        width: Math.max(rect.width, 160),
+        top: showAbove ? rect.top - menuHeight - 2 : rect.bottom + 2,
+      })
+    }
+    setOpen(o => !o)
+  }
+
+  const select = (val, e) => {
+    e.stopPropagation()
+    onChange(val)
+    setOpen(false)
+  }
+
+  useEffect(() => {
+    if (!open) return
+    const close = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setOpen(false)
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [open])
+
+  return (
+    <>
+      <button
+        className={`tu-titem-dropdown-trigger${open ? ' tu-titem-dropdown-trigger--open' : ''}`}
+        onClick={toggle}
+        disabled={disabled}
+        type="button"
+      >
+        <span className="tu-titem-dropdown-value">{selectedLabel}</span>
+        <span className="tu-titem-dropdown-chevron">{open ? '▴' : '▾'}</span>
+      </button>
+      {open && pos && createPortal(
+        <div
+          ref={menuRef}
+          className="tu-titem-dropdown-menu"
+          style={{ left: pos.left, top: pos.top, width: pos.width }}
+        >
+          {options.map(([val, label]) => (
+            <div
+              key={val}
+              className={`tu-titem-dropdown-option${val === value ? ' tu-titem-dropdown-option--active' : ''}`}
+              onClick={(e) => select(val, e)}
+            >
+              {val === value && <span className="tu-titem-dropdown-check">✓</span>}
+              <span>{label}</span>
+            </div>
+          ))}
+        </div>,
+        document.body
+      )}
+    </>
+  )
+}
+
+function ToolPanelItem({ tool, disabled, onClick, isFavorite, onToggleFavorite, isActive, isSuggested, ai, onHover, onLeave }) {
   const [selectVal, setSelectVal] = useState(tool.options?.[0]?.[0] || '')
   const [hovered, setHovered] = useState(false)
   const isDisabled = disabled && tool.type !== 'drawer' && tool.type !== 'action'
   const itemRef = useRef(null)
+  const isSelect = tool.type === 'select'
 
   const handleClick = () => {
     if (isDisabled) return
-    if (tool.type === 'select') {
+    if (isSelect) {
       if (ai && tool.setterKey && ai[tool.setterKey]) ai[tool.setterKey](selectVal)
       setTimeout(() => onClick(), 10)
       return
@@ -45,21 +121,16 @@ function ToolPanelItem({ tool, disabled, onClick, isDiscovered, isFavorite, onTo
       >
         <span className={`tu-titem-icon tu-titem-icon--${tool.color}`}>{tool.icon}</span>
         <span className="tu-titem-name">{tool.label}</span>
-        {isSuggested && <span className="tu-titem-suggested">suggested</span>}
-        {!isDiscovered && (tool.tabs?.includes('ai') || tool.tabs?.includes('code')) && <span className="tu-titem-new">NEW</span>}
-        {tool.type === 'select' && (
-          <select
-            className="tu-titem-select"
+        {isSelect && (
+          <SelectDropdown
+            options={tool.options || []}
             value={selectVal}
-            onChange={e => { e.stopPropagation(); setSelectVal(e.target.value) }}
-            onClick={e => e.stopPropagation()}
+            onChange={setSelectVal}
             disabled={disabled}
-          >
-            {(tool.options || []).map(([val, label]) => (
-              <option key={val} value={val}>{label}</option>
-            ))}
-          </select>
+            triggerRef={itemRef}
+          />
         )}
+        {isSuggested && <span className="tu-titem-suggested">suggested</span>}
         <button
           className={`tu-titem-fav${isFavorite ? ' tu-titem-fav--active' : ''}`}
           onClick={e => { e.stopPropagation(); onToggleFavorite?.(tool.id) }}
@@ -148,7 +219,6 @@ export default memo(function ToolPanel({
                 tool={tool}
                 disabled={disabled}
                 onClick={() => onToolClick(tool)}
-                isDiscovered={gamification?.discoveredTools?.includes(tool.id)}
                 isFavorite={gamification?.favorites?.includes(tool.id)}
                 onToggleFavorite={gamification?.toggleFavorite}
                 isActive={tool.type === 'drawer' && activePanel === tool.panelId}

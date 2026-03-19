@@ -2,7 +2,7 @@
  * useTheme — manages light/dark mode.
  * Syncs to DB when authenticated, falls back to localStorage.
  */
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux';
 import { useGetPreferencesQuery, useUpdatePreferencesMutation } from '../store/api/userDataApi';
 
@@ -13,7 +13,7 @@ function applyMode(mode) {
     else document.body.classList.remove('dark');
 }
 
-export function useTheme(showAlert) {
+export function useTheme() {
     const [mode, setModeState] = useState(() => {
         const saved = localStorage.getItem(MODE_KEY) || 'dark';
         applyMode(saved);
@@ -44,19 +44,6 @@ export function useTheme(showAlert) {
         if (!isAuthenticated) hydrated.current = false;
     }, [isAuthenticated]);
 
-    const toggleMode = useCallback(() => {
-        setModeState(prev => {
-            const next = prev === 'dark' ? 'light' : 'dark';
-            applyMode(next);
-            localStorage.setItem(MODE_KEY, next);
-            if (isAuthenticated) {
-                updatePrefs({ theme: next }).unwrap().catch(() => {});
-            }
-            showAlert(`${next === 'dark' ? 'Dark' : 'Light'} mode enabled`, 'success');
-            return next;
-        });
-    }, [showAlert, isAuthenticated, updatePrefs]);
-
     const setMode = useCallback((newMode) => {
         setModeState(newMode);
         applyMode(newMode);
@@ -68,5 +55,5 @@ export function useTheme(showAlert) {
 
     useEffect(() => { applyMode(mode); }, [mode]);
 
-    return { mode, toggleMode, setMode };
+    return { mode, setMode }
 }
