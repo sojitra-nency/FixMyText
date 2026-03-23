@@ -26,11 +26,11 @@ export default function Navbar(props) {
                 <button
                     className="tu-titlebar-search d-none d-md-flex"
                     onClick={() => {
-                        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'f', ctrlKey: true }))
+                        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))
                     }}
                 >
                     <span className="tu-titlebar-search-text">Search tools...</span>
-                    <kbd className="tu-titlebar-search-kbd">Ctrl+F</kbd>
+                    <kbd className="tu-titlebar-search-kbd">Ctrl+K</kbd>
                 </button>
 
                 {/* About */}

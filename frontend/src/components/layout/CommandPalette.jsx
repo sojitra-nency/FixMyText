@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 export default function CommandPalette({ search, onToolClick }) {
   const [activeIdx, setActiveIdx] = useState(0)
   const inputRef = useRef(null)
+  const resultsRef = useRef(null)
   const results = search.results || []
 
   useEffect(() => {
@@ -11,6 +12,13 @@ export default function CommandPalette({ search, onToolClick }) {
   }, [search.isOpen])
 
   useEffect(() => { setActiveIdx(0) }, [results.length])
+
+  useEffect(() => {
+    const container = resultsRef.current
+    if (!container) return
+    const item = container.children[activeIdx]
+    if (item) item.scrollIntoView({ block: 'nearest' })
+  }, [activeIdx])
 
   const handleSelect = (tool) => {
     onToolClick(tool)
@@ -52,7 +60,7 @@ export default function CommandPalette({ search, onToolClick }) {
               onChange={e => search.setQuery(e.target.value)}
             />
 
-            <div className="tu-palette-results">
+            <div className="tu-palette-results" ref={resultsRef}>
               {results.length === 0 && search.query && (
                 <div className="tu-palette-empty">No tools found for "{search.query}"</div>
               )}
@@ -66,20 +74,24 @@ export default function CommandPalette({ search, onToolClick }) {
                   onClick={() => handleSelect(tool)}
                   onMouseEnter={() => setActiveIdx(i)}
                 >
-                  <span className={`tu-palette-item-icon tu-tool-card--${tool.color} tu-tool-card-icon`}
-                    style={{ background: 'none', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 8 }}>
+                  <span className={`tu-palette-item-icon tu-tool-card--${tool.color} tu-tool-card-icon`}>
                     {tool.icon}
                   </span>
                   <div className="tu-palette-item-text">
                     <span className="tu-palette-item-name">{tool.label}</span>
                     <span className="tu-palette-item-desc">{tool.description}</span>
                   </div>
+                  {tool.tabs?.[0] && (
+                    <span className="tu-palette-item-tag">{tool.tabs[0]}</span>
+                  )}
                 </motion.button>
               ))}
             </div>
 
             <div className="tu-palette-hint">
-              ↑↓ Navigate &middot; Enter Select &middot; Esc Close
+              <span><kbd>↑</kbd><kbd>↓</kbd> Navigate</span>
+              <span><kbd>Enter</kbd> Select</span>
+              <span><kbd>Esc</kbd> Close</span>
             </div>
           </motion.div>
         </motion.div>

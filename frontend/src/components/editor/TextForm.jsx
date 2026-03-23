@@ -23,6 +23,7 @@ import useSmartSuggestions from '../../hooks/useSmartSuggestions'
 import useToolSearch from '../../hooks/useToolSearch'
 import useResize from '../../hooks/useResize'
 import useTrialLimit from '../../hooks/useTrialLimit'
+import useKeyboardShortcuts from '../../hooks/useKeyboardShortcuts'
 
 // Components
 import ToolPanel from './ToolPanel'
@@ -39,6 +40,7 @@ import HistoryDrawer from '../drawers/HistoryDrawer'
 import SmartSuggestions from './SmartSuggestions'
 import BottomPanel from './BottomPanel'
 import CommandPalette from '../layout/CommandPalette'
+import KeyboardShortcuts from '../layout/KeyboardShortcuts'
 import AchievementToast from '../gamification/AchievementToast'
 
 import { motion, AnimatePresence } from 'framer-motion'
@@ -199,18 +201,6 @@ export default function TextForm(props) {
             try { sharedTextRef.current = decodeURIComponent(atob(shared)) } catch {}
         }
     }, [])
-
-    // ── Keyboard shortcut for command palette ───────────────
-    useEffect(() => {
-        const handler = (e) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
-                e.preventDefault()
-                search.isOpen ? search.close() : search.open()
-            }
-        }
-        window.addEventListener('keydown', handler)
-        return () => window.removeEventListener('keydown', handler)
-    }, [search])
 
     // ── Generic API handler (RTK Query) ─────────────────────
     const callApi = async (endpoint, successMsg) => {
@@ -501,6 +491,81 @@ export default function TextForm(props) {
         return () => clearTimeout(timer)
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [text, activeWorkspaceId])
+
+    // ── Keyboard Shortcuts (power-user hotkeys) ─────────────
+    // Use a ref so the keydown handler always sees the latest closures
+    // without triggering re-registration on every render.
+    const kbActionsRef = useRef(null)
+    kbActionsRef.current = {
+        openPalette: () => search.isOpen ? search.close() : search.open(),
+        toggleSidebar: () => setSidebarOpen(o => !o),
+        toggleSettings: () => setSettingsOpen(o => !o),
+        onEscape: () => {
+            if (search.isOpen) { search.close(); return }
+            if (settingsOpen) { setSettingsOpen(false); return }
+            if (activePanel) { setActivePanel(null); return }
+            if (sidebarOpen) { setSidebarOpen(false); return }
+        },
+        runActiveTool: () => {
+            const ws = workspaceTabs.find(t => t.id === activeWorkspaceId)
+            if (ws?.type === 'tool') executeToolAction(ws.tool)
+        },
+        saveTemplate: () => {
+            if (activeWorkspaceId) {
+                const ws = workspaceTabs.find(t => t.id === activeWorkspaceId)
+                setSaveModal({ tabId: activeWorkspaceId, defaultName: ws?.label || 'Untitled' })
+            }
+        },
+        closeActiveTab: () => { if (activeWorkspaceId) closeWorkspaceTab(activeWorkspaceId) },
+        clearText: () => handleClear(),
+        undo: () => history.handleUndo(),
+        redo: () => history.handleRedo(),
+        copyOutput: () => {
+            const ws = workspaceTabs.find(t => t.id === activeWorkspaceId)
+            const result = ws?.type === 'tool' ? toolResults[ws.tool.id] : ai.aiResult
+            if (result?.result) {
+                navigator.clipboard.writeText(result.result)
+                showAlert('Output copied', 'success')
+            }
+        },
+        clearPaste: () => handleClearPaste(),
+        goToTab: (idx) => {
+            if (idx === 8) {
+                const last = workspaceTabs[workspaceTabs.length - 1]
+                if (last) setActiveWorkspaceId(last.id)
+            } else if (workspaceTabs[idx]) {
+                setActiveWorkspaceId(workspaceTabs[idx].id)
+            }
+        },
+        nextTab: () => {
+            if (workspaceTabs.length === 0) return
+            const idx = workspaceTabs.findIndex(t => t.id === activeWorkspaceId)
+            const next = (idx + 1) % workspaceTabs.length
+            setActiveWorkspaceId(workspaceTabs[next].id)
+        },
+        prevTab: () => {
+            if (workspaceTabs.length === 0) return
+            const idx = workspaceTabs.findIndex(t => t.id === activeWorkspaceId)
+            const prev = (idx - 1 + workspaceTabs.length) % workspaceTabs.length
+            setActiveWorkspaceId(workspaceTabs[prev].id)
+        },
+        runTool: (tool) => handleToolClick(tool),
+    }
+    // Stable proxy object — never changes identity, always delegates to latest ref
+    const keyboardActions = useMemo(() => {
+        const proxy = {}
+        const keys = ['openPalette','toggleSidebar','toggleSettings','onEscape','runActiveTool',
+            'saveTemplate','closeActiveTab','clearText','undo','redo','copyOutput','clearPaste',
+            'goToTab','nextTab','prevTab','runTool']
+        keys.forEach(k => { proxy[k] = (...args) => kbActionsRef.current[k]?.(...args) })
+        return proxy
+    }, [])
+
+    const {
+        shortcutsOpen, setShortcutsOpen,
+        groups: shortcutGroups, overrides: shortcutOverrides,
+        updateBinding, resetAll: resetAllBindings, resetOne: resetOneBinding, isCustomized: isBindingCustomized,
+    } = useKeyboardShortcuts(keyboardActions)
 
     // ── Derived stats ───────────────────────────────────────
     const disabled = text.length === 0 || loading
@@ -1014,9 +1079,11 @@ export default function TextForm(props) {
                                 <h3 className="tu-landing-heading">Keyboard shortcuts</h3>
                                 <div className="tu-landing-shortcut-list">
                                     <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>K</kbd><span>Command palette</span></div>
-                                    <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>Enter</kbd><span>Run tool</span></div>
+                                    <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>↵</kbd><span>Run tool</span></div>
                                     <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>B</kbd><span>Toggle sidebar</span></div>
                                     <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>W</kbd><span>Close tab</span></div>
+                                    <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>S</kbd><span>Save template</span></div>
+                                    <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>/</kbd><span>All shortcuts</span></div>
                                 </div>
                             </div>
                         </div>
@@ -1203,7 +1270,7 @@ export default function TextForm(props) {
                     <button className="tu-settings-item" onClick={() => { search.open(); setSettingsOpen(false) }}>
                         <span className="tu-settings-item-icon">⌨</span>
                         <span className="tu-settings-item-label">Command Palette</span>
-                        <kbd className="tu-settings-item-kbd">Ctrl+F</kbd>
+                        <kbd className="tu-settings-item-kbd">Ctrl+K</kbd>
                     </button>
 
                     {/* Dashboard */}
@@ -1223,9 +1290,10 @@ export default function TextForm(props) {
                     )}
 
                     {/* Keyboard shortcuts info */}
-                    <button className="tu-settings-item" onClick={() => { showAlert('Ctrl+F: Search tools | Ctrl+Z: Undo | Ctrl+Shift+Z: Redo', 'info'); setSettingsOpen(false) }}>
+                    <button className="tu-settings-item" onClick={() => { setShortcutsOpen(true); setSettingsOpen(false) }}>
                         <span className="tu-settings-item-icon">⌘</span>
                         <span className="tu-settings-item-label">Keyboard Shortcuts</span>
+                        <kbd className="tu-settings-item-kbd">Ctrl+/</kbd>
                     </button>
 
                     {/* Auth */}
@@ -1311,6 +1379,16 @@ export default function TextForm(props) {
 
         <AchievementToast achievement={gamification.newAchievement} />
         <CommandPalette search={search} onToolClick={handleToolClick} />
+        <KeyboardShortcuts
+            isOpen={shortcutsOpen}
+            onClose={() => setShortcutsOpen(false)}
+            groups={shortcutGroups}
+            overrides={shortcutOverrides}
+            updateBinding={updateBinding}
+            resetAll={resetAllBindings}
+            resetOne={resetOneBinding}
+            isCustomized={isBindingCustomized}
+        />
 
         {/* Sign-in gate modal */}
         {trial.showSignInGate && (
