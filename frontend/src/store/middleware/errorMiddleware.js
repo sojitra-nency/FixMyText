@@ -18,7 +18,7 @@ export const errorMiddleware = () => (next) => (action) => {
         }
 
         // Skip silent query endpoints (token refresh, getMe)
-        const silentEndpoints = ['refresh', 'getMe', 'getPreferences', 'getGamification', 'getTemplates']
+        const silentEndpoints = ['refresh', 'getMe', 'getPreferences', 'getGamification', 'getTemplates', 'getHistory', 'getHistoryStats']
         if (silentEndpoints.includes(endpoint)) {
             return next(action)
         }

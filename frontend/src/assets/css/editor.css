@@ -568,6 +568,43 @@
 }
 .tu-sidebar-panel-item-del:hover { background: rgba(244,71,71,0.15); color: var(--rose); }
 .tu-sidebar-panel-item-action:hover { background: var(--accent-glow); color: var(--accent); }
+.tu-sidebar-panel-item-action--danger:hover { background: rgba(244,71,71,0.15); color: var(--rose); }
+
+/* ── History panel tabs ─────────────────────────── */
+.tu-sidebar-panel-tabs {
+  display: flex;
+  gap: 0;
+  padding: 0 8px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--sidebar-border);
+}
+.tu-sidebar-panel-tab {
+  flex: 1;
+  padding: 6px 0;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-3);
+  font-size: 0.7rem;
+  cursor: pointer;
+  text-align: center;
+  transition: color var(--t), border-color var(--t);
+}
+.tu-sidebar-panel-tab:hover { color: var(--sidebar-fg); }
+.tu-sidebar-panel-tab--active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* ── History pagination ──────────────────────────── */
+.tu-sidebar-panel-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-top: 1px solid var(--sidebar-border);
+}
 
 /* ── Tab save button ─────────────────────────────── */
 .tu-tab-save {

@@ -7,34 +7,36 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
 }
 
 .tu-upgrade-modal {
   position: relative;
-  width: 520px;
+  width: 460px;
   max-width: 94vw;
   max-height: 90vh;
   overflow-y: auto;
-  background: var(--editor-bg);
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 32px 28px 24px;
+  border-radius: var(--r-lg);
+  padding: 28px 24px 20px;
   text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255,255,255,0.04) inset;
 }
 
 .tu-upgrade-close {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 10px;
+  right: 10px;
   background: none;
   border: none;
   color: var(--text-3);
   cursor: pointer;
   padding: 4px;
-  border-radius: 4px;
+  border-radius: var(--r-sm);
   line-height: 0;
+  transition: color var(--t), background var(--t);
 }
 .tu-upgrade-close:hover {
   color: var(--text);
@@ -45,25 +47,72 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #007acc33, #9b59b633);
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(0,122,204,0.15), rgba(197,134,192,0.12));
   color: var(--accent);
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+  position: relative;
+}
+.tu-upgrade-icon::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 15px;
+  background: linear-gradient(135deg, rgba(0,122,204,0.3), rgba(197,134,192,0.2));
+  z-index: -1;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  padding: 1px;
 }
 
 .tu-upgrade-title {
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--text);
-  margin: 0 0 8px;
+  margin: 0 0 12px;
+  letter-spacing: -0.01em;
+}
+
+/* Usage progress bar */
+.tu-upgrade-usage {
+  margin: 0 0 14px;
+  text-align: left;
+}
+.tu-upgrade-usage-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: var(--text-3);
+  margin-bottom: 6px;
+}
+.tu-upgrade-usage-label strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.tu-upgrade-usage-count {
+  font-weight: 600;
+  color: var(--rose);
+  font-variant-numeric: tabular-nums;
+}
+.tu-upgrade-usage-track {
+  height: 4px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.tu-upgrade-usage-fill {
+  height: 100%;
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, var(--accent), var(--rose));
 }
 
 .tu-upgrade-desc {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-3);
-  margin: 0 0 24px;
+  margin: 0 0 16px;
   line-height: 1.5;
 }
 .tu-upgrade-desc strong {
@@ -77,89 +126,526 @@
   font-size: 11px;
   cursor: pointer;
   padding: 0;
-  text-decoration: underline;
+  text-decoration: none;
+  opacity: 0.85;
+  transition: opacity var(--t);
 }
 .tu-upgrade-footer-link:hover {
-  color: #005fa3;
+  opacity: 1;
+  text-decoration: underline;
 }
 
-/* ── Dashboard Subscription Card ─────────────────────────────────── */
+/* ── Subscription Plan Card ──────────────────────────────────────── */
 
-.tu-dash-sub-card {
+.tu-sub-plan-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  margin-bottom: 16px;
+  transition: border-color var(--t);
+}
+.tu-sub-plan-card--pro {
+  border-color: rgba(0,122,204,0.3);
+  background: linear-gradient(135deg, var(--surface), rgba(0,122,204,0.04));
+}
+
+.tu-sub-plan-header {
   display: flex;
   align-items: center;
-  gap: 20px;
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  margin-bottom: 16px;
+  justify-content: space-between;
+  gap: 16px;
 }
 
-.tu-dash-sub-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
+.tu-sub-plan-badge-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+}
+
+.tu-sub-plan-badge {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
   flex-shrink: 0;
-}
-.tu-dash-sub-icon--free {
   background: var(--surface-2);
+  color: var(--text-3);
 }
-.tu-dash-sub-icon--pro {
-  background: linear-gradient(135deg, #007acc33, #9b59b633);
-}
-
-.tu-dash-sub-info {
-  flex: 1;
-}
-
-.tu-dash-sub-tier {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text);
-}
-.tu-dash-sub-tier--pro {
+.tu-sub-plan-badge--pro {
+  background: linear-gradient(135deg, rgba(0,122,204,0.18), rgba(197,134,192,0.14));
   color: var(--accent);
 }
 
-.tu-dash-sub-detail {
+.tu-sub-plan-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.tu-sub-plan-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.tu-sub-plan-card--pro .tu-sub-plan-name {
+  color: var(--accent);
+}
+.tu-sub-plan-desc {
   font-size: 12px;
   color: var(--text-3);
-  margin-top: 2px;
+  line-height: 1.4;
 }
 
-.tu-dash-sub-actions {
-  display: flex;
-  gap: 8px;
+.tu-sub-plan-actions {
+  flex-shrink: 0;
 }
 
-.tu-dash-sub-btn {
-  padding: 8px 16px;
-  border-radius: 6px;
+/* Shared button styles */
+.tu-sub-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: var(--r-md);
   border: none;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background var(--t), box-shadow var(--t), transform var(--t);
+  white-space: nowrap;
 }
-.tu-dash-sub-btn--upgrade {
+.tu-sub-btn--primary {
   background: var(--accent);
   color: #fff;
 }
-.tu-dash-sub-btn--upgrade:hover {
-  background: #005fa3;
+.tu-sub-btn--primary:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 2px 8px rgba(0,122,204,0.25);
 }
-.tu-dash-sub-btn--manage {
+.tu-sub-btn--primary:active {
+  transform: scale(0.97);
+}
+.tu-sub-btn--secondary {
   background: var(--surface-2);
   color: var(--text);
   border: 1px solid var(--border);
 }
-.tu-dash-sub-btn--manage:hover {
+.tu-sub-btn--secondary:hover {
   background: var(--border);
+}
+.tu-sub-btn--wide {
+  width: 100%;
+  justify-content: center;
+  padding: 10px 18px;
+}
+
+/* Quick stats row */
+.tu-sub-plan-stats {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+.tu-sub-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.tu-sub-stat-val {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.tu-sub-stat-label {
+  font-size: 11px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.tu-sub-stat-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+/* ── Plan Comparison ────────────────────────────────────────────── */
+
+.tu-sub-compare {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.tu-sub-compare-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-3);
+  margin: 0 0 14px;
+}
+
+.tu-sub-compare-table {
+  display: flex;
+  flex-direction: column;
+}
+
+.tu-sub-compare-head {
+  display: flex;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-3);
+}
+
+.tu-sub-compare-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  transition: background var(--t);
+}
+.tu-sub-compare-row:last-child {
+  border-bottom: none;
+}
+.tu-sub-compare-row:hover {
+  background: rgba(255,255,255,0.02);
+}
+.tu-sub-compare-row--highlight {
+  background: rgba(0,122,204,0.04);
+}
+.tu-sub-compare-row--highlight:hover {
+  background: rgba(0,122,204,0.06);
+}
+
+.tu-sub-compare-feature {
+  flex: 1;
+  color: var(--text);
+  font-size: 12.5px;
+}
+.tu-sub-compare-head .tu-sub-compare-feature {
+  color: var(--text-3);
+}
+
+.tu-sub-compare-col {
+  width: 120px;
+  text-align: center;
+  flex-shrink: 0;
+  font-size: 12.5px;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tu-sub-compare-col--pro {
+  color: var(--accent);
+  font-weight: 600;
+}
+.tu-sub-compare-col--pro strong {
+  color: var(--accent);
+}
+.tu-sub-compare-col--free {
+  color: var(--text-3);
+}
+
+.tu-sub-compare-dash {
+  color: var(--text-3);
+  opacity: 0.4;
+  font-size: 16px;
+}
+
+.tu-sub-compare-cta {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+/* ── Pro Upgrade Card ────────────────────────────────────────────── */
+
+.tu-sub-pro-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid rgba(0,122,204,0.3);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.tu-sub-pro-glow {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(0,122,204,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.tu-sub-pro-content {
+  position: relative;
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+.tu-sub-pro-left {
+  flex: 1;
+  min-width: 0;
+}
+.tu-sub-pro-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.tu-sub-pro-desc {
+  font-size: 12.5px;
+  color: var(--text-3);
+  margin: 0 0 12px;
+  line-height: 1.5;
+}
+.tu-sub-pro-perks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tu-sub-pro-perks li {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: var(--text-2);
+}
+.tu-sub-pro-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  min-width: 160px;
+}
+.tu-sub-pro-price {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.tu-sub-pro-price small {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-3);
+}
+
+/* ── Section Layout ──────────────────────────────────────────────── */
+
+.tu-sub-section {
+  margin-bottom: 16px;
+}
+.tu-sub-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.tu-sub-section-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-3);
+  margin: 0;
+}
+.tu-sub-section-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--accent);
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity var(--t);
+}
+.tu-sub-section-link:hover {
+  opacity: 0.8;
+}
+.tu-sub-link--center {
+  justify-content: center;
+  width: 100%;
+  margin-top: 4px;
+}
+.tu-sub-section-hint {
+  font-size: 11px;
+  color: var(--text-3);
+}
+.tu-sub-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  padding: 24px;
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+/* ── Pass Grid (Dashboard) ───────────────────────────────────────── */
+
+.tu-sub-pass-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 10px;
+}
+.tu-sub-pass-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  cursor: default;
+  transition: border-color var(--t), box-shadow var(--t);
+}
+.tu-sub-pass-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(0,122,204,0.08);
+}
+.tu-sub-pass-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.tu-sub-pass-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.tu-sub-pass-price {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.tu-sub-pass-subtitle {
+  font-size: 11px;
+  color: var(--text-3);
+  line-height: 1.4;
+}
+.tu-sub-pass-chips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.tu-sub-chip {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: var(--r-pill);
+  background: var(--surface-2);
+  color: var(--text-3);
+  font-weight: 500;
+}
+.tu-sub-pass-buy {
+  align-self: stretch;
+  margin-top: 4px;
+  padding: 6px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--t), border-color var(--t), color var(--t);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.tu-sub-pass-buy:hover:not(:disabled) {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.tu-sub-pass-buy:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ── Credit Grid (Dashboard) ─────────────────────────────────────── */
+
+.tu-sub-credit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+.tu-sub-credit-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+  cursor: default;
+  transition: border-color var(--t), box-shadow var(--t);
+}
+.tu-sub-credit-card:hover {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 1px rgba(78,201,176,0.08);
+}
+.tu-sub-credit-amount {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.tu-sub-credit-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-3);
+}
+.tu-sub-credit-price {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--cyan);
+  margin-top: 4px;
+}
+.tu-sub-credit-per {
+  font-size: 10px;
+  color: var(--text-3);
 }
 
 /* ── AI Usage Meter ──────────────────────────────────────────────── */
@@ -239,6 +725,39 @@
 .tu-sf-upgrade-link:hover {
   background: var(--accent);
   color: #fff;
+}
+
+@media (max-width: 640px) {
+  .tu-sub-plan-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .tu-sub-plan-actions {
+    width: 100%;
+  }
+  .tu-sub-btn--primary,
+  .tu-sub-btn--secondary {
+    width: 100%;
+    justify-content: center;
+  }
+  .tu-sub-compare-col {
+    width: 80px;
+    font-size: 11px;
+  }
+  .tu-sub-pro-content {
+    flex-direction: column;
+  }
+  .tu-sub-pro-right {
+    width: 100%;
+    min-width: 0;
+  }
+  .tu-sub-pass-grid {
+    grid-template-columns: 1fr;
+  }
+  .tu-sub-credit-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 540px) {

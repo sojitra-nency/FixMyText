@@ -85,4 +85,8 @@ export const ENDPOINTS = {
 
   // Subscription
   SUBSCRIPTION_STATUS: '/api/v1/subscription/status',
+
+  // History
+  HISTORY_LIST: '/api/v1/history',
+  HISTORY_STATS: '/api/v1/history/stats/summary',
 }

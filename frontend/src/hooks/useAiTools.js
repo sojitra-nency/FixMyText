@@ -15,7 +15,7 @@ export default function useAiTools(text, setText, setMarkdownMode, setPreviewMod
 
     const hasMarkdown = (str) => /[|#*\-]{2,}|^\s*[•\-\d]+[.)]\s|^\|.+\|$/m.test(str)
 
-    const callAi = async (endpoint, label, errorMsg) => {
+    const callAi = async (endpoint, label, errorMsg, toolId) => {
         if (!text) return
         if (!accessToken) {
             showAlert('Please log in to use AI tools', 'warning')
@@ -26,7 +26,7 @@ export default function useAiTools(text, setText, setMarkdownMode, setPreviewMod
             const data = await transformText({ endpoint, text }).unwrap()
             setAiResult({ label, result: data.result })
             setPreviewMode('result')
-            if (pushHistory) pushHistory(label, original, data.result)
+            if (pushHistory) pushHistory(label, original, data.result, { toolId: toolId || label.toLowerCase().replace(/\s+/g, '_'), toolType: 'ai' })
             showAlert(`${label} generated`, 'success')
         } catch (err) {
             if (err.status === 429) {
@@ -62,7 +62,7 @@ export default function useAiTools(text, setText, setMarkdownMode, setPreviewMod
             const data = await transformText({ endpoint: ENDPOINTS.CHANGE_FORMAT, text, format: formatSetting }).unwrap()
             setAiResult({ label, result: data.result })
             setPreviewMode('result')
-            if (pushHistory) pushHistory(label, original, data.result)
+            if (pushHistory) pushHistory(label, original, data.result, { toolId: 'change_format', toolType: 'select' })
             showAlert(`Reformatted as ${formatSetting}`, 'success')
         } catch (err) {
             showAlert(err.data?.detail || 'Could not change format. Please try again.', 'danger')
@@ -77,7 +77,7 @@ export default function useAiTools(text, setText, setMarkdownMode, setPreviewMod
             const data = await transformText({ endpoint: ENDPOINTS.CHANGE_TONE, text, tone: toneSetting }).unwrap()
             setAiResult({ label, result: data.result })
             setPreviewMode('result')
-            if (pushHistory) pushHistory(label, original, data.result)
+            if (pushHistory) pushHistory(label, original, data.result, { toolId: 'change_tone', toolType: 'select' })
             showAlert(`Tone changed to ${toneSetting}`, 'success')
         } catch (err) {
             showAlert(err.data?.detail || 'Could not change tone. Please try again.', 'danger')
@@ -92,7 +92,7 @@ export default function useAiTools(text, setText, setMarkdownMode, setPreviewMod
             const data = await transformText({ endpoint: ENDPOINTS.TRANSLATE, text, target_language: translateLang }).unwrap()
             setAiResult({ label, result: data.result })
             setPreviewMode('result')
-            if (pushHistory) pushHistory(label, original, data.result)
+            if (pushHistory) pushHistory(label, original, data.result, { toolId: 'translate', toolType: 'select' })
             showAlert(`Translated to ${translateLang}`, 'success')
         } catch (err) {
             showAlert(err.data?.detail || 'Could not translate text. Please try again.', 'danger')
@@ -107,7 +107,7 @@ export default function useAiTools(text, setText, setMarkdownMode, setPreviewMod
             const data = await transformText({ endpoint: ENDPOINTS.TRANSLITERATE, text, target_language: translitLang }).unwrap()
             setAiResult({ label, result: data.result })
             setPreviewMode('result')
-            if (pushHistory) pushHistory(label, original, data.result)
+            if (pushHistory) pushHistory(label, original, data.result, { toolId: 'transliterate', toolType: 'select' })
             showAlert(`Transliterated to ${translitLang} script`, 'success')
         } catch (err) {
             showAlert(err.data?.detail || 'Could not transliterate text. Please try again.', 'danger')

@@ -3,12 +3,12 @@ import { useSelector } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import {
   useGetSubscriptionStatusQuery,
-  useCreateProSubscriptionMutation,
-  useVerifyProSubscriptionMutation,
+  useCreateProCheckoutMutation,
+  useVerifyProPaymentMutation,
   useCancelSubscriptionMutation,
 } from '../store/api/subscriptionApi'
 import usePasses from './usePasses'
-import { openRazorpaySubscription, executeCheckoutFlow } from '../utils/razorpay'
+import { openRazorpayCheckout, executeCheckoutFlow } from '../utils/razorpay'
 
 const ALWAYS_FREE_IDS = new Set([
   'find_replace', 'compare', 'random_text', 'password', 'fmt_settings',
@@ -26,8 +26,8 @@ export default function useSubscription({ showAlert } = {}) {
     skip: !isAuthenticated,
   })
 
-  const [createProSub, { isLoading: upgradeLoading }] = useCreateProSubscriptionMutation()
-  const [verifyProSub] = useVerifyProSubscriptionMutation()
+  const [createProCheckout, { isLoading: upgradeLoading }] = useCreateProCheckoutMutation()
+  const [verifyProPayment] = useVerifyProPaymentMutation()
   const [cancelSub, { isLoading: cancelLoading }] = useCancelSubscriptionMutation()
 
   const passes = usePasses({ showAlert })
@@ -62,18 +62,19 @@ export default function useSubscription({ showAlert } = {}) {
     setBlockedTool(null)
   }, [])
 
-  // Upgrade to Pro via Razorpay subscription modal
+  // Upgrade to Pro via Razorpay order (one-time payment)
   const handleUpgrade = useCallback(async () => {
     await executeCheckoutFlow({
-      createOrder: () => createProSub().unwrap(),
-      openCheckout: ({ subscription_id, key_id, user_email, user_name, onSuccess, onFailure }) =>
-        openRazorpaySubscription({
-          subscriptionId: subscription_id, keyId: key_id,
+      createOrder: () => createProCheckout().unwrap(),
+      openCheckout: ({ order_id, amount, currency, key_id, user_email, user_name, onSuccess, onFailure }) =>
+        openRazorpayCheckout({
+          orderId: order_id, amount, currency, keyId: key_id,
           userEmail: user_email, userName: user_name,
+          description: 'Pro — Unlimited Access',
           onSuccess, onFailure,
         }),
-      verifyPayment: (response) => verifyProSub({
-        razorpay_subscription_id: response.razorpay_subscription_id,
+      verifyPayment: (response) => verifyProPayment({
+        razorpay_order_id: response.razorpay_order_id,
         razorpay_payment_id: response.razorpay_payment_id,
         razorpay_signature: response.razorpay_signature,
       }).unwrap(),
@@ -83,7 +84,7 @@ export default function useSubscription({ showAlert } = {}) {
       navigate,
       errorMessage: 'Failed to start subscription. Please try again.',
     })
-  }, [createProSub, verifyProSub, showAlert, navigate])
+  }, [createProCheckout, verifyProPayment, showAlert, navigate])
 
   // Cancel Pro subscription
   const handleCancelSubscription = useCallback(async () => {

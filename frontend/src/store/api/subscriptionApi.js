@@ -1,18 +1,9 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { baseQueryWithReauth } from './baseQuery'
 
 export const subscriptionApi = createApi({
   reducerPath: 'subscriptionApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: BASE_URL,
-    credentials: 'include',
-    prepareHeaders: (headers, { getState }) => {
-      const token = getState().auth.accessToken
-      if (token) headers.set('Authorization', `Bearer ${token}`)
-      return headers
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: ['Subscription'],
   endpoints: (builder) => ({
     getSubscriptionStatus: builder.query({
@@ -20,13 +11,13 @@ export const subscriptionApi = createApi({
       providesTags: ['Subscription'],
     }),
 
-    // Razorpay: create subscription for Pro upgrade
-    createProSubscription: builder.mutation({
+    // Razorpay: create order for Pro upgrade (one-time payment)
+    createProCheckout: builder.mutation({
       query: () => ({ url: '/api/v1/subscription/checkout', method: 'POST' }),
     }),
 
-    // Razorpay: verify subscription payment
-    verifyProSubscription: builder.mutation({
+    // Razorpay: verify Pro payment
+    verifyProPayment: builder.mutation({
       query: (body) => ({ url: '/api/v1/subscription/verify', method: 'POST', body }),
       invalidatesTags: ['Subscription'],
     }),
@@ -41,7 +32,7 @@ export const subscriptionApi = createApi({
 
 export const {
   useGetSubscriptionStatusQuery,
-  useCreateProSubscriptionMutation,
-  useVerifyProSubscriptionMutation,
+  useCreateProCheckoutMutation,
+  useVerifyProPaymentMutation,
   useCancelSubscriptionMutation,
 } = subscriptionApi

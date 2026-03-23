@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTransformTextMutation } from '../../store/api/textApi'
+import { useSelector } from 'react-redux'
 import { useLogoutMutation } from '../../store/api/authApi'
+import { useGetHistoryQuery, useDeleteHistoryEntryMutation, useClearHistoryMutation } from '../../store/api/historyApi'
 import { TOOLS, PERSONAS, QUEST_TEMPLATES, USE_CASE_TABS, ACHIEVEMENTS } from '../../constants/tools'
 import { ENDPOINTS } from '../../constants/endpoints'
 import { ROUTES } from '../../constants'
@@ -140,6 +142,17 @@ export default function TextForm(props) {
     const trial = useTrialLimit(props.isAuthenticated)
     const subscription = props.subscription
 
+    // ── Persistent history (server-side) ─────────────────────
+    const { accessToken } = useSelector((s) => s.auth)
+    const [historyView, setHistoryView] = useState('session') // 'session' | 'saved'
+    const [historyPage, setHistoryPage] = useState(1)
+    const { data: serverHistory, isFetching: historyFetching } = useGetHistoryQuery(
+        { page: historyPage, pageSize: 25 },
+        { skip: !accessToken || historyView !== 'saved' }
+    )
+    const [deleteHistoryEntry] = useDeleteHistoryEntryMutation()
+    const [clearServerHistory] = useClearHistoryMutation()
+
     // Resizable panels
     const splitRef = useRef(null)
     const gutterRef = useRef(null)
@@ -202,14 +215,14 @@ export default function TextForm(props) {
     }, [])
 
     // ── Generic API handler (RTK Query) ─────────────────────
-    const callApi = async (endpoint, successMsg) => {
+    const callApi = async (endpoint, successMsg, toolMeta) => {
         if (!text) return
         const original = text
         try {
             const data = await transformText({ endpoint, text }).unwrap()
             ai.setAiResult({ label: successMsg, result: data.result })
             setPreviewMode('result')
-            history.pushHistory(successMsg, original, data.result)
+            history.pushHistory(successMsg, original, data.result, toolMeta)
             showAlert(successMsg, 'success')
             return { success: true, result: data.result }
         } catch (err) {
@@ -245,7 +258,7 @@ export default function TextForm(props) {
             const hash = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('')
             ai.setAiResult({ label: 'SHA-256 Hash', result: hash })
             setPreviewMode('result')
-            history.pushHistory('SHA-256 Hash', original, hash)
+            history.pushHistory('SHA-256 Hash', original, hash, { toolId: 'sha256', toolType: 'local' })
             showAlert('SHA-256 hash generated', 'success')
         } catch { showAlert('SHA-256 hashing failed', 'danger') }
         finally { setLocalLoading(false) }
@@ -260,7 +273,7 @@ export default function TextForm(props) {
             const hash = md5Module.default(text)
             ai.setAiResult({ label: 'MD5 Hash', result: hash })
             setPreviewMode('result')
-            history.pushHistory('MD5 Hash', original, hash)
+            history.pushHistory('MD5 Hash', original, hash, { toolId: 'md5', toolType: 'local' })
             showAlert('MD5 hash generated', 'success')
         } catch { showAlert('MD5 hashing failed', 'danger') }
         finally { setLocalLoading(false) }
@@ -311,7 +324,7 @@ export default function TextForm(props) {
             const result = `=== HEADER ===\n${JSON.stringify(header, null, 2)}\n\n=== PAYLOAD ===\n${JSON.stringify(payload, null, 2)}`
             ai.setAiResult({ label: 'JWT Decoded', result })
             setPreviewMode('result')
-            history.pushHistory('JWT Decoded', original, result)
+            history.pushHistory('JWT Decoded', original, result, { toolId: 'jwt_decode', toolType: 'local' })
             showAlert('JWT decoded', 'success')
         } catch (err) { showAlert(err.message || 'Invalid JWT token', 'danger') }
         finally { setLocalLoading(false) }
@@ -416,7 +429,7 @@ export default function TextForm(props) {
         gamification.recordToolUse(tool.id, text.length)
 
         if (tool.type === 'api') {
-            callApi(tool.endpoint, tool.successMsg).then(res => {
+            callApi(tool.endpoint, tool.successMsg, { toolId: tool.id, toolType: tool.type }).then(res => {
                 if (res?.success) pipeline.addStep(tool.id, tool.label, res.result)
                 if (subscription?.refetchStatus) subscription.refetchStatus()
             })
@@ -580,7 +593,7 @@ export default function TextForm(props) {
             case 'password': return <PasswordDrawer {...generators} showAlert={showAlert} />
             case 'regex': return <RegexDrawer {...regex} disabled={disabled} />
             case 'templates': return <TemplatesDrawer {...templates} disabled={disabled} />
-            case 'history': return <HistoryDrawer {...history} />
+            case 'history': return <HistoryDrawer {...history} setText={setText} showAlert={showAlert} />
             case 'fmt': return (
                 <FormatterDrawer
                     pendingFmtCfg={formatter.pendingFmtCfg}
@@ -809,47 +822,143 @@ export default function TextForm(props) {
                 {/* History panel */}
                 {activeTab === '_history' && (
                     <div className="tu-sidebar-panel">
-                        {history.history.length > 0 && (
-                            <div className="tu-sidebar-panel-actions">
-                                <span className="tu-sidebar-panel-count">{history.history.length} operations</span>
-                                <button className="tu-sidebar-panel-btn tu-sidebar-panel-btn--danger" onClick={history.handleClearHistory}>
-                                    Clear All
-                                </button>
+                        {/* View toggle: Session vs Saved (only if logged in) */}
+                        {accessToken && (
+                            <div className="tu-sidebar-panel-tabs">
+                                <button
+                                    className={`tu-sidebar-panel-tab${historyView === 'session' ? ' tu-sidebar-panel-tab--active' : ''}`}
+                                    onClick={() => setHistoryView('session')}
+                                >Session</button>
+                                <button
+                                    className={`tu-sidebar-panel-tab${historyView === 'saved' ? ' tu-sidebar-panel-tab--active' : ''}`}
+                                    onClick={() => { setHistoryView('saved'); setHistoryPage(1) }}
+                                >All History</button>
                             </div>
                         )}
-                        {history.history.length === 0 ? (
-                            <div className="tu-sidebar-panel-empty">No operations yet</div>
-                        ) : (
-                            <div className="tu-sidebar-panel-list">
-                                {[...history.history].reverse().map((h, ri) => {
-                                    const i = history.history.length - 1 - ri
-                                    return (
-                                        <div key={i} className="tu-sidebar-panel-item">
-                                            <span className="tu-sidebar-panel-item-icon">⚡</span>
-                                            <span className="tu-sidebar-panel-item-name">{h.operation}</span>
-                                            <span className="tu-sidebar-panel-item-meta">
-                                                {new Date(h.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            </span>
-                                            <button
-                                                className="tu-sidebar-panel-item-action"
-                                                onClick={() => {
-                                                    setText(h.original)
-                                                    showAlert(`Restored input from "${h.operation}"`, 'success')
-                                                }}
-                                                title="Restore input"
-                                            >↩</button>
-                                            <button
-                                                className="tu-sidebar-panel-item-action"
-                                                onClick={() => {
-                                                    setText(h.result)
-                                                    showAlert(`Restored result from "${h.operation}"`, 'success')
-                                                }}
-                                                title="Restore result"
-                                            >↪</button>
+
+                        {/* Session history (local, in-memory) */}
+                        {historyView === 'session' && (
+                            <>
+                                {history.history.length > 0 && (
+                                    <div className="tu-sidebar-panel-actions">
+                                        <span className="tu-sidebar-panel-count">{history.history.length} operations</span>
+                                        <button className="tu-sidebar-panel-btn tu-sidebar-panel-btn--danger" onClick={history.handleClearHistory}>
+                                            Clear All
+                                        </button>
+                                    </div>
+                                )}
+                                {history.history.length === 0 ? (
+                                    <div className="tu-sidebar-panel-empty">No operations yet</div>
+                                ) : (
+                                    <div className="tu-sidebar-panel-list">
+                                        {[...history.history].reverse().map((h, ri) => {
+                                            const i = history.history.length - 1 - ri
+                                            return (
+                                                <div key={i} className="tu-sidebar-panel-item">
+                                                    <span className="tu-sidebar-panel-item-icon">⚡</span>
+                                                    <span className="tu-sidebar-panel-item-name">{h.operation}</span>
+                                                    <span className="tu-sidebar-panel-item-meta">
+                                                        {new Date(h.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </span>
+                                                    <button
+                                                        className="tu-sidebar-panel-item-action"
+                                                        onClick={() => {
+                                                            setText(h.original)
+                                                            showAlert(`Restored input from "${h.operation}"`, 'success')
+                                                        }}
+                                                        title="Restore input"
+                                                    >↩</button>
+                                                    <button
+                                                        className="tu-sidebar-panel-item-action"
+                                                        onClick={() => {
+                                                            setText(h.result)
+                                                            showAlert(`Restored result from "${h.operation}"`, 'success')
+                                                        }}
+                                                        title="Restore result"
+                                                    >↪</button>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                )}
+                            </>
+                        )}
+
+                        {/* Saved history (server-side, paginated) */}
+                        {historyView === 'saved' && accessToken && (
+                            <>
+                                {serverHistory && serverHistory.total > 0 && (
+                                    <div className="tu-sidebar-panel-actions">
+                                        <span className="tu-sidebar-panel-count">{serverHistory.total} total</span>
+                                        <button className="tu-sidebar-panel-btn tu-sidebar-panel-btn--danger" onClick={() => {
+                                            clearServerHistory().unwrap().then(() => showAlert('All history cleared', 'success')).catch(() => {})
+                                        }}>
+                                            Clear All
+                                        </button>
+                                    </div>
+                                )}
+                                {historyFetching ? (
+                                    <div className="tu-sidebar-panel-empty">Loading...</div>
+                                ) : !serverHistory || serverHistory.items.length === 0 ? (
+                                    <div className="tu-sidebar-panel-empty">No saved history yet</div>
+                                ) : (
+                                    <>
+                                        <div className="tu-sidebar-panel-list">
+                                            {serverHistory.items.map((h) => (
+                                                <div key={h.id} className="tu-sidebar-panel-item">
+                                                    <span className="tu-sidebar-panel-item-icon">⚡</span>
+                                                    <span className="tu-sidebar-panel-item-name">{h.tool_label}</span>
+                                                    <span className="tu-sidebar-panel-item-meta">
+                                                        {new Date(h.created_at).toLocaleDateString([], { month: 'short', day: 'numeric' })}{' '}
+                                                        {new Date(h.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    </span>
+                                                    <button
+                                                        className="tu-sidebar-panel-item-action"
+                                                        onClick={() => {
+                                                            setText(h.input_preview)
+                                                            showAlert(`Restored input from "${h.tool_label}"`, 'success')
+                                                        }}
+                                                        title="Restore input"
+                                                    >↩</button>
+                                                    <button
+                                                        className="tu-sidebar-panel-item-action"
+                                                        onClick={() => {
+                                                            setText(h.output_preview)
+                                                            showAlert(`Restored output from "${h.tool_label}"`, 'success')
+                                                        }}
+                                                        title="Restore output"
+                                                    >↪</button>
+                                                    <button
+                                                        className="tu-sidebar-panel-item-action tu-sidebar-panel-item-action--danger"
+                                                        onClick={() => {
+                                                            deleteHistoryEntry(h.id).unwrap().catch(() => {})
+                                                        }}
+                                                        title="Delete entry"
+                                                    >✕</button>
+                                                </div>
+                                            ))}
                                         </div>
-                                    )
-                                })}
-                            </div>
+                                        {/* Pagination */}
+                                        {serverHistory.total > 25 && (
+                                            <div className="tu-sidebar-panel-pagination">
+                                                <button
+                                                    className="tu-sidebar-panel-btn"
+                                                    disabled={historyPage <= 1}
+                                                    onClick={() => setHistoryPage(p => Math.max(1, p - 1))}
+                                                >Prev</button>
+                                                <span className="tu-sidebar-panel-count">
+                                                    Page {historyPage} of {Math.ceil(serverHistory.total / 25)}
+                                                </span>
+                                                <button
+                                                    className="tu-sidebar-panel-btn"
+                                                    disabled={!serverHistory.has_more}
+                                                    onClick={() => setHistoryPage(p => p + 1)}
+                                                >Next</button>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                            </>
                         )}
                     </div>
                 )}

@@ -24,7 +24,7 @@ export default function useWordFrequency(text, showAlert, setAiResult, setPrevie
         const result = lines.join('\n')
         setAiResult({ label: 'Word Frequency', result })
         setPreviewMode('result')
-        if (pushHistory) pushHistory('Word Frequency', text, result)
+        if (pushHistory) pushHistory('Word Frequency', text, result, { toolId: 'word_frequency', toolType: 'local' })
         showAlert(`${unique} unique words found`, 'success')
     }
 

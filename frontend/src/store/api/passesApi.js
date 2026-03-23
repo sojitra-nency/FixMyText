@@ -1,19 +1,10 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { createApi } from '@reduxjs/toolkit/query/react'
+import { baseQueryWithReauth } from './baseQuery'
 import { BROWSER_REGION } from '../../utils/region'
-
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export const passesApi = createApi({
   reducerPath: 'passesApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: BASE_URL,
-    credentials: 'include',
-    prepareHeaders: (headers, { getState }) => {
-      const token = getState().auth.accessToken
-      if (token) headers.set('Authorization', `Bearer ${token}`)
-      return headers
-    },
-  }),
+  baseQuery: baseQueryWithReauth,
   tagTypes: ['Passes', 'Credits'],
   endpoints: (builder) => ({
     // Catalog (public)
