@@ -394,6 +394,21 @@
   background: var(--surface-2);
 }
 
+.tu-sidebar-header-count {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--accent);
+  margin-left: 8px;
+  background: var(--accent-glow);
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  border: 1px solid rgba(0, 122, 204, 0.25);
+  line-height: 1;
+  vertical-align: middle;
+  text-transform: none;
+}
+
 .tu-sidebar-header-actions {
   margin-left: auto;
   display: flex;

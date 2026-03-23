@@ -30,12 +30,13 @@ import useKeyboardShortcuts from '../../hooks/useKeyboardShortcuts'
 // Components
 import ToolPanel from './ToolPanel'
 import ToolView from './ToolView'
+import ToolIcon from './ToolIcon'
 import OutputPanel from './OutputPanel'
 import DrawerPanel from '../drawers/DrawerPanel'
 import FindReplaceDrawer from '../drawers/FindReplaceDrawer'
-import CompareDrawer from '../drawers/CompareDrawer'
+import CompareOutput, { CompareInput } from '../drawers/CompareDrawer'
 import { RandomTextDrawer, PasswordDrawer } from '../drawers/GeneratorDrawer'
-import FormatterDrawer from '../drawers/FormatterDrawer'
+import FmtConfigBar from './FmtConfigBar'
 import RegexDrawer from '../drawers/RegexDrawer'
 import TemplatesDrawer from '../drawers/TemplatesDrawer'
 import HistoryDrawer from '../drawers/HistoryDrawer'
@@ -65,7 +66,6 @@ const DRAWERS = {
     compare:  { title: 'Text Compare',         color: 'purple' },
     randtext: { title: 'Random Text Generator', color: 'amber' },
     password: { title: 'Password Generator',    color: 'amber' },
-    fmt:      { title: 'Formatter Settings',    color: 'slate' },
     regex:    { title: 'Regex Tester',           color: 'teal' },
     templates:{ title: 'Text Templates',          color: 'amber' },
     history:  { title: 'History / Undo',          color: 'slate' },
@@ -127,7 +127,11 @@ export default function TextForm(props) {
     const findReplace = useFindReplace(text, setText, showAlert)
     const compare = useTextCompare(text, showAlert)
     const generators = useGenerators(setText, showAlert)
-    const formatter = useFormatter(text, setText, setLocalLoading, showAlert)
+    const formatter = useFormatter(text, setLocalLoading, showAlert, (label, result) => {
+        ai.setAiResult({ label, result })
+        setPreviewMode('result')
+        history.pushHistory(label, text, result, { toolType: 'local' })
+    })
     const history = useHistory(setText, showAlert)
     const ai = useAiTools(text, setText, setMarkdownMode, setPreviewMode, showAlert, history.pushHistory)
     const speech = useSpeech(text, setText, showAlert)
@@ -405,13 +409,12 @@ export default function TextForm(props) {
             isNew = true
             return [...tabs, { id: tabId, label: tool.label, icon: tool.icon, type: 'tool', tool }]
         })
-        // Seed new tab: URL shared text > current tab's text
+        // Seed new tab: only from URL shared text, otherwise start empty
         if (isNew) {
-            const seedText = sharedTextRef.current || toolTexts[activeTabIdRef.current] || ''
+            const seedText = sharedTextRef.current || ''
             if (sharedTextRef.current) sharedTextRef.current = null
+            setToolTexts(prev => prev[tabId] ? prev : { ...prev, [tabId]: seedText })
             if (seedText) {
-                setToolTexts(prev => prev[tabId] ? prev : { ...prev, [tabId]: seedText })
-                // Schedule auto-run after state settles
                 pendingAutoRun.current = tool
             }
         }
@@ -458,10 +461,18 @@ export default function TextForm(props) {
         if (!tool) return
         if (tool.type === 'drawer') {
             const tabId = `drawer-${tool.panelId}`
+            let isNew = false
             setWorkspaceTabs(tabs => {
                 if (tabs.find(t => t.id === tabId)) return tabs
+                isNew = true
                 return [...tabs, { id: tabId, label: tool.label, icon: tool.icon, type: 'drawer', panelId: tool.panelId }]
             })
+            // Reset compare state on fresh open so user starts with empty text
+            if (isNew && tool.panelId === 'compare') {
+                setToolTexts(prev => ({ ...prev, [tabId]: '' }))
+                compare.setCompareText('')
+                compare.setDiffResult(null)
+            }
             setActiveWorkspaceId(tabId)
             setActivePanel(tool.panelId)
             gamification.recordToolUse(tool.id, text.length)
@@ -588,24 +599,12 @@ export default function TextForm(props) {
     const renderDrawerContent = () => {
         switch (activePanel) {
             case 'find': return <FindReplaceDrawer {...findReplace} disabled={disabled} />
-            case 'compare': return <CompareDrawer {...compare} disabled={disabled} />
+            case 'compare': return null // Compare uses its own layout
             case 'randtext': return <RandomTextDrawer {...generators} />
             case 'password': return <PasswordDrawer {...generators} showAlert={showAlert} />
             case 'regex': return <RegexDrawer {...regex} disabled={disabled} />
             case 'templates': return <TemplatesDrawer {...templates} disabled={disabled} />
             case 'history': return <HistoryDrawer {...history} setText={setText} showAlert={showAlert} />
-            case 'fmt': return (
-                <FormatterDrawer
-                    pendingFmtCfg={formatter.pendingFmtCfg}
-                    setPendingFmt={formatter.setPendingFmt}
-                    setPendingFmtCfg={formatter.setPendingFmtCfg}
-                    defaultFmtCfg={formatter.defaultFmtCfg}
-                    fmtCfg={formatter.fmtCfg}
-                    disabled={disabled}
-                    handleFmtApply={formatter.handleFmtApply}
-                    setActivePanel={setActivePanel}
-                />
-            )
             default: return null
         }
     }
@@ -687,6 +686,11 @@ export default function TextForm(props) {
                 <div className="tu-sidebar-header">
                     <span title="~/FixMyText/workspace/tools">
                         {activeTab === '_new' ? "What's New" : activeTab === '_templates' ? 'Templates' : activeTab === '_history' ? 'History' : activeTab === '_favourites' ? 'Favourites' : USE_CASE_TABS.find(t => t.id === activeTab)?.label || 'Explorer'}
+                        {activeTab && !activeTab.startsWith('_') && (
+                            <span className="tu-sidebar-header-count">
+                                {activeTab === 'all' || activeTab === 'popular' ? TOOLS.length : TOOLS.filter(t => t.tabs?.includes(activeTab)).length}
+                            </span>
+                        )}
                     </span>
                     <div className="tu-sidebar-header-actions">
                         <button
@@ -732,7 +736,7 @@ export default function TextForm(props) {
                                     {favTools.map(tool => (
                                         <div key={tool.id} className="tu-titem-wrap">
                                             <div className="tu-titem" onClick={() => handleToolClick(tool)}>
-                                                <span className={`tu-titem-icon tu-titem-icon--${tool.color}`}>{tool.icon}</span>
+                                                <ToolIcon icon={tool.icon} color={tool.color} toolId={tool.id} />
                                                 <span className="tu-titem-name">{tool.label}</span>
                                                 <button
                                                     className="tu-titem-fav tu-titem-fav--active"
@@ -765,7 +769,7 @@ export default function TextForm(props) {
                                     {newTools.map(tool => (
                                         <div key={tool.id} className="tu-titem-wrap">
                                             <div className="tu-titem" onClick={() => handleToolClick(tool)}>
-                                                <span className={`tu-titem-icon tu-titem-icon--${tool.color}`}>{tool.icon}</span>
+                                                <ToolIcon icon={tool.icon} color={tool.color} toolId={tool.id} />
                                                 <span className="tu-titem-name">{tool.label}</span>
                                             </div>
                                         </div>
@@ -1398,8 +1402,8 @@ export default function TextForm(props) {
                 )}
 
                 {activeWorkspaceId && <><div ref={splitRef} className="tu-editor-split" style={{ gridTemplateColumns: `${splitResize.size}fr 4px ${100 - splitResize.size}fr` }}>
-                    {/* ─── Left: Input (always visible) ─── */}
-                    <div className="tu-editor-input">
+                    {/* ─── Left: Input (+ Compare With when compare tool is active) ─── */}
+                    <div className={`tu-editor-input${workspaceTabs.find(t => t.id === activeWorkspaceId)?.panelId === 'compare' ? ' tu-editor-input--split' : ''}`}>
                         <div className="tu-editor-topbar">
                             <span className="tu-editor-label" title="~/FixMyText/workspace/input.txt">INPUT</span>
                             <div className="tu-topbar-stats">
@@ -1441,6 +1445,14 @@ export default function TextForm(props) {
                                 <span>Dyslexia</span>
                             </button>
                         </div>
+                        {/* Formatter config bar — shown inline for formatter tools */}
+                        {(() => {
+                            const ws = workspaceTabs.find(t => t.id === activeWorkspaceId)
+                            const fmtToolId = ws?.type === 'tool' && ['js_fmt','ts_fmt','css_fmt','html_fmt'].includes(ws.tool.id) ? ws.tool.id : null
+                            return fmtToolId ? (
+                                <FmtConfigBar toolId={fmtToolId} fmtCfg={formatter.fmtCfg} setFmtCfg={formatter.setFmtCfg} />
+                            ) : null
+                        })()}
                         <div className="tu-editor-body">
                             <div className="tu-line-numbers" ref={gutterRef}>
                                 {(text || '\n').split('\n').map((_, i) => (
@@ -1468,6 +1480,14 @@ export default function TextForm(props) {
                                 <span>Processing...</span>
                             </div>
                         )}
+                        {/* Compare With input (shown below main input when compare tool is active) */}
+                        {workspaceTabs.find(t => t.id === activeWorkspaceId)?.panelId === 'compare' && (
+                            <CompareInput
+                                compareText={compare.compareText}
+                                setCompareText={compare.setCompareText}
+                                setDiffResult={compare.setDiffResult}
+                            />
+                        )}
                     </div>
 
                     {/* Split resize handle */}
@@ -1478,6 +1498,10 @@ export default function TextForm(props) {
                         {(() => {
                             const ws = workspaceTabs.find(t => t.id === activeWorkspaceId)
                             if (ws?.type === 'drawer') {
+                                // Compare renders diff output directly
+                                if (ws.panelId === 'compare') {
+                                    return <CompareOutput diffResult={compare.diffResult} compareText={compare.compareText} />
+                                }
                                 return DRAWERS[ws.panelId] ? (
                                     <DrawerPanel
                                         title={DRAWERS[ws.panelId].title}

@@ -10,7 +10,6 @@ const defaultFmtCfg = {
     arrowParens:      'always',
     jsxSingleQuote:   false,
     sortImports:      true,
-    language:         'babel',
 }
 
 const parserImports = {
@@ -18,13 +17,6 @@ const parserImports = {
     typescript: () => import('prettier/parser-typescript'),
     html:       () => import('prettier/parser-html'),
     css:        () => import('prettier/parser-postcss'),
-}
-
-const parserLabels = {
-    babel:      'JS / JSX',
-    typescript: 'TypeScript',
-    html:       'HTML',
-    css:        'CSS',
 }
 
 const sortImportsAlphabetically = (code) => {
@@ -49,11 +41,8 @@ const sortImportsAlphabetically = (code) => {
     return [...lines.slice(0, start), ...sorted, ...lines.slice(i)].join('\n')
 }
 
-export default function useFormatter(text, setText, setLoading, showAlert) {
+export default function useFormatter(text, setLoading, showAlert, onResult) {
     const [fmtCfg, setFmtCfg] = useState(defaultFmtCfg)
-    const [pendingFmtCfg, setPendingFmtCfg] = useState(defaultFmtCfg)
-
-    const setPendingFmt = (patch) => setPendingFmtCfg(c => ({ ...c, ...patch }))
 
     const runFormat = async (parser, successMsg, cfgOverride) => {
         if (!text) return
@@ -80,7 +69,7 @@ export default function useFormatter(text, setText, setLoading, showAlert) {
                 arrowParens:    cfg.arrowParens,
                 jsxSingleQuote: cfg.jsxSingleQuote,
             })
-            setText(formatted)
+            onResult(successMsg, formatted)
             showAlert(successMsg, 'success')
         } catch (err) {
             showAlert(err.message?.split('\n')[0] || 'Format error', 'danger')
@@ -94,24 +83,9 @@ export default function useFormatter(text, setText, setLoading, showAlert) {
     const handleFormatJs   = () => runFormat('babel',      'JS / JSX formatted')
     const handleFormatTs   = () => runFormat('typescript', 'TypeScript formatted')
 
-    const handleFmtApply = (setActivePanel) => {
-        const cfg = pendingFmtCfg
-        setFmtCfg(cfg)
-        setActivePanel(null)
-        const parser = cfg.language
-        if (text && parserImports[parser]) {
-            runFormat(parser, `${parserLabels[parser]} formatted with new settings`, cfg)
-        } else {
-            showAlert('Formatter settings applied', 'success')
-        }
-    }
-
     return {
         fmtCfg, setFmtCfg,
-        pendingFmtCfg, setPendingFmtCfg,
-        setPendingFmt,
         defaultFmtCfg,
         handleFormatHtml, handleFormatCss, handleFormatJs, handleFormatTs,
-        handleFmtApply,
     }
 }

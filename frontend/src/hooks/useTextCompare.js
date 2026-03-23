@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 
 export default function useTextCompare(text, showAlert) {
     const [compareText, setCompareText] = useState('')
     const [diffResult, setDiffResult] = useState(null)
+    const timerRef = useRef(null)
 
     const lineDiff = (aLines, bLines) => {
         const m = aLines.length, n = bLines.length
@@ -24,10 +25,26 @@ export default function useTextCompare(text, showAlert) {
         return result
     }
 
+    const runCompare = useCallback(() => {
+        if (!text || !compareText) return
+        const aLines = text.split('\n'), bLines = compareText.split('\n')
+        if (aLines.length + bLines.length > 2000) return
+        setDiffResult(lineDiff(aLines, bLines))
+    }, [text, compareText])
+
+    // Auto-compare after 3 seconds of inactivity when both texts are available
+    useEffect(() => {
+        if (timerRef.current) clearTimeout(timerRef.current)
+        if (!text || !compareText) return
+        timerRef.current = setTimeout(runCompare, 3000)
+        return () => { if (timerRef.current) clearTimeout(timerRef.current) }
+    }, [text, compareText, runCompare])
+
     const handleCompare = () => {
         if (!text || !compareText) { showAlert('Both text fields must have content', 'danger'); return }
         const aLines = text.split('\n'), bLines = compareText.split('\n')
         if (aLines.length + bLines.length > 2000) { showAlert('Text too large to diff (max ~1000 lines each)', 'danger'); return }
+        if (timerRef.current) clearTimeout(timerRef.current)
         setDiffResult(lineDiff(aLines, bLines))
     }
 
