@@ -1,4 +1,5 @@
-import { memo, useMemo } from 'react'
+import { memo, useMemo, useState, useRef, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { marked } from 'marked'
 
 export default memo(function OutputPanel({
@@ -6,8 +7,12 @@ export default memo(function OutputPanel({
   previewMode, setPreviewMode, showAlert,
   text, dyslexiaMode, markdownMode,
   speech, onDyslexiaToggle,
-  activeTool, loading,
+  activeTool, loading, exportTools,
 }) {
+  const [saveMenuOpen, setSaveMenuOpen] = useState(false)
+  const [menuPos, setMenuPos] = useState({ top: 0, left: 0 })
+  const saveBtnRef = useRef(null)
+  const saveMenuRef = useRef(null)
   const handleAccept = () => { onAiAccept(); setPreviewMode(null) }
 
   const showResult = previewMode === 'result' && aiResult
@@ -24,6 +29,28 @@ export default memo(function OutputPanel({
     chars: outputText ? outputText.length : 0,
     sentences: outputText ? outputText.split(/[.?]\s*(?=\S|$)|\n/).filter(s => s.trim()).length : 0,
   }), [outputText])
+
+  // Close save menu on outside click
+  useEffect(() => {
+    if (!saveMenuOpen) return
+    const handleClick = (e) => {
+      if (saveMenuRef.current?.contains(e.target)) return
+      if (saveBtnRef.current?.contains(e.target)) return
+      setSaveMenuOpen(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [saveMenuOpen])
+
+  const toggleSaveMenu = useCallback(() => {
+    setSaveMenuOpen(prev => {
+      if (!prev && saveBtnRef.current) {
+        const rect = saveBtnRef.current.getBoundingClientRect()
+        setMenuPos({ top: rect.bottom + 4, left: rect.right })
+      }
+      return !prev
+    })
+  }, [])
 
   const handleCopy = () => {
     if (!outputText) return
@@ -47,6 +74,28 @@ export default memo(function OutputPanel({
     window.speechSynthesis.speak(utterance)
     showAlert('Reading output aloud...', 'info')
   }
+
+  const saveMenu = saveMenuOpen && createPortal(
+    <div className="tu-save-menu" ref={saveMenuRef} style={{ top: menuPos.top, left: menuPos.left }}>
+      <button className="tu-save-menu-item" onClick={() => { exportTools.handleDownloadTxt(); setSaveMenuOpen(false) }}>
+        <span className="tu-save-menu-icon">.txt</span>
+        <span>Save TXT</span>
+      </button>
+      <button className="tu-save-menu-item" onClick={() => { exportTools.handleDownloadPdf(); setSaveMenuOpen(false) }}>
+        <span className="tu-save-menu-icon">.pdf</span>
+        <span>Save PDF</span>
+      </button>
+      <button className="tu-save-menu-item" onClick={() => { exportTools.handleDownloadDocx(); setSaveMenuOpen(false) }}>
+        <span className="tu-save-menu-icon">.doc</span>
+        <span>Save DOCX</span>
+      </button>
+      <button className="tu-save-menu-item" onClick={() => { exportTools.handleDownloadJson(); setSaveMenuOpen(false) }}>
+        <span className="tu-save-menu-icon">{'{}'}</span>
+        <span>Save JSON</span>
+      </button>
+    </div>,
+    document.body
+  )
 
   // No content to show
   if (!hasContent) {
@@ -112,7 +161,23 @@ export default memo(function OutputPanel({
           <span className="tu-input-toolbar-icon-text">Aa</span>
           <span>Dyslexia</span>
         </button>
+        {exportTools && (
+          <>
+            <div className="tu-input-toolbar-sep" />
+            <button
+              ref={saveBtnRef}
+              className={`tu-input-toolbar-btn${saveMenuOpen ? ' tu-input-toolbar-btn--active' : ''}`}
+              onClick={toggleSaveMenu}
+              title="Save output as file"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span>Save As</span>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+          </>
+        )}
       </div>
+      {saveMenu}
       <div className="tu-output-body" onScroll={e => {
         const gutter = e.currentTarget.querySelector('.tu-line-numbers')
         if (gutter) gutter.scrollTop = e.currentTarget.scrollTop

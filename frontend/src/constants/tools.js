@@ -20,7 +20,6 @@ export const USE_CASE_TABS = [
   { id: 'ai',        label: 'AI Magic',     icon: '🤖', color: 'pink' },
   { id: 'language',  label: 'Language',      icon: '🌐', color: 'indigo' },
   { id: 'encode',    label: 'Encode',       icon: '🔒', color: 'indigo' },
-  { id: 'export',    label: 'Export',        icon: '📤', color: 'emerald' },
   { id: 'all',       label: 'All Tools',     icon: '📦', color: 'gray' },
 ]
 
@@ -126,11 +125,7 @@ export const TOOLS = [
   { id: 'word_freq',     label: 'Word Freq',       description: 'Analyze word frequency in your text',    icon: 'W#', color: 'purple',   tabs: ['writing'],              type: 'local', handlerKey: 'handleWordFrequency', keywords: ['word','frequency','count','analyze'] },
 
   // ──────────────── Actions ────────────────
-  { id: 'markdown',      label: 'Markdown',        description: 'Preview text as rendered Markdown',      icon: 'MD', color: 'indigo',   tabs: ['export','code'],        type: 'action', handlerKey: 'handleMarkdownMode', keywords: ['markdown','preview','render'] },
-  { id: 'save_txt',      label: 'Save TXT',        description: 'Download text as a .txt file',           icon: '.txt', color: 'gray',   tabs: ['export'],               type: 'action', handlerKey: 'handleDownloadTxt',  keywords: ['download','save','txt','file'] },
-  { id: 'save_pdf',      label: 'Save PDF',        description: 'Download text as a .pdf file',           icon: '.pdf', color: 'gray',   tabs: ['export'],               type: 'action', handlerKey: 'handleDownloadPdf',  keywords: ['download','save','pdf','file'] },
-  { id: 'save_docx',     label: 'Save DOCX',       description: 'Download text as a .docx file',          icon: '.doc', color: 'gray',   tabs: ['export'],               type: 'action', handlerKey: 'handleDownloadDocx', keywords: ['download','save','docx','word','file'] },
-  { id: 'save_json',     label: 'Save JSON',       description: 'Download text as a .json file',          icon: '{↓}', color: 'gray',   tabs: ['export','code'],         type: 'action', handlerKey: 'handleDownloadJson', keywords: ['download','save','json','file'] },
+  { id: 'markdown',      label: 'Markdown',        description: 'Preview text as rendered Markdown',      icon: 'MD', color: 'indigo',   tabs: ['code'],                 type: 'action', handlerKey: 'handleMarkdownMode', keywords: ['markdown','preview','render'] },
 ]
 
 // ── Smart Suggestion Rules ────────────────────────────────
@@ -164,7 +159,6 @@ export const SEARCH_INTENTS = [
   { phrases: ['convert case','uppercase','lowercase','capitalize'],        toolIds: ['uppercase','lowercase','title_case'] },
   { phrases: ['compare','diff','difference'],                              toolIds: ['compare'] },
   { phrases: ['generate password','random password','strong password'],     toolIds: ['password'] },
-  { phrases: ['download','save','export'],                                  toolIds: ['save_txt','save_pdf','save_docx'] },
   { phrases: ['explain simply','eli5','simple words','easy'],              toolIds: ['eli5'] },
   { phrases: ['email','professional email'],                                toolIds: ['email_rewrite'] },
   { phrases: ['hashtag','social media','twitter'],                          toolIds: ['hashtags','tweet_shorten'] },
@@ -242,7 +236,6 @@ export const QUEST_TEMPLATES = [
   { id: 'pipeline_10',        text: 'Use 10 tools in a single session',        xp: 100, check: (ops) => ops.length >= 10 },
   { id: 'speed_burst',        text: 'Use 3 tools within 60 seconds',           xp: 60, check: (ops) => { if (ops.length < 3) return false; const r = ops.slice(-3); return (r[2].time - r[0].time) < 60000 } },
   // Specific tool quests
-  { id: 'export_something',   text: 'Export your text in any format',          xp: 50, check: (ops) => ops.some(o => o.id?.startsWith('save_')) },
   { id: 'use_word_freq',      text: 'Analyze your text with Word Frequency',   xp: 40, check: (ops) => ops.some(o => o.id === 'word_frequency') },
   { id: 'use_title_gen',      text: 'Generate a title for your text',          xp: 40, check: (ops) => ops.some(o => o.id === 'title_generator') },
   { id: 'use_json_format',    text: 'Format some JSON or code',                xp: 40, check: (ops) => ops.some(o => o.id === 'json_format' || o.id === 'format_code') },

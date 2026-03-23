@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTransformTextMutation } from '../../store/api/textApi'
 import { useLogoutMutation } from '../../store/api/authApi'
-import { TOOLS, PERSONAS, QUEST_TEMPLATES, USE_CASE_TABS } from '../../constants/tools'
+import { TOOLS, PERSONAS, QUEST_TEMPLATES, USE_CASE_TABS, ACHIEVEMENTS } from '../../constants/tools'
 import { ENDPOINTS } from '../../constants/endpoints'
 import { ROUTES } from '../../constants'
 
@@ -54,7 +54,6 @@ const ACTIVITY_ICONS = {
     ai: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M16 14H8a4 4 0 0 0-4 4v2h16v-2a4 4 0 0 0-4-4z"/><circle cx="9" cy="6.5" r="0.8" fill="currentColor" stroke="none"/><circle cx="15" cy="6.5" r="0.8" fill="currentColor" stroke="none"/></svg>,
     language: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
     encode: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
-    export: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>,
     all: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,
 }
 
@@ -380,12 +379,8 @@ export default function TextForm(props) {
         handleTranslate:        ai.handleTranslate,
         handleTransliterate:    ai.handleTransliterate,
         handleMarkdownMode,
-        handleDownloadTxt:   exportTools.handleDownloadTxt,
-        handleDownloadPdf:   exportTools.handleDownloadPdf,
-        handleDownloadDocx:  exportTools.handleDownloadDocx,
-        handleDownloadJson:  exportTools.handleDownloadJson,
         handleWordFrequency: wordFreq.handleWordFrequency,
-    }), [callApi, ai, formatter, exportTools, wordFreq, handleBase64Encode, handleBase64Decode, handleUrlEncode, handleUrlDecode, handleHexEncode, handleHexDecode, handleMorseEncode, handleMorseDecode, handleMd5, handleSha256, handleJsonEscape, handleJsonUnescape, handleHtmlEscape, handleHtmlUnescape, handleJsonFormat, handleJsonToYaml, handleCsvToJson, handleJsonToCsv, handleJwtDecode, handleMarkdownMode])
+    }), [callApi, ai, formatter, wordFreq, handleBase64Encode, handleBase64Decode, handleUrlEncode, handleUrlDecode, handleHexEncode, handleHexDecode, handleMorseEncode, handleMorseDecode, handleMd5, handleSha256, handleJsonEscape, handleJsonUnescape, handleHtmlEscape, handleHtmlUnescape, handleJsonFormat, handleJsonToYaml, handleCsvToJson, handleJsonToCsv, handleJwtDecode, handleMarkdownMode])
 
     // ── Open a tool as a workspace tab ──────────────────────
     const openToolTab = useCallback((tool) => {
@@ -950,143 +945,346 @@ export default function TextForm(props) {
                 {/* ─── Landing page (no tool selected) ─── */}
                 {!activeWorkspaceId && (
                     <div className="tu-landing">
-                        <div className="tu-landing-hero">
-                            <h1 className="tu-landing-title">FixMyText</h1>
-                            <p className="tu-landing-subtitle">{TOOLS.length}+ text tools at your fingertips</p>
-                        </div>
-
-                        <div className="tu-landing-columns">
-                            {/* Start */}
-                            <div className="tu-landing-section">
-                                <h3 className="tu-landing-heading">Start</h3>
-                                <button className="tu-landing-link" onClick={() => search.open()}>
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                                    Search tools...
-                                    <kbd>Ctrl+K</kbd>
-                                </button>
-                                {(() => {
-                                    const quickTools = ['uppercase', 'fix_grammar', 'paraphrase', 'summarize', 'base64_encode']
-                                        .map(id => TOOLS.find(t => t.id === id)).filter(Boolean)
-                                    return quickTools.map(tool => (
-                                        <button key={tool.id} className="tu-landing-link" onClick={() => handleToolClick(tool)}>
-                                            <span className="tu-landing-link-icon">{tool.icon}</span>
-                                            {tool.label}
-                                        </button>
-                                    ))
-                                })()}
-                            </div>
-
-                            {/* How it works */}
-                            <div className="tu-landing-section">
-                                <h3 className="tu-landing-heading">How it works</h3>
-                                <div className="tu-landing-steps">
-                                    <div className="tu-landing-step">
-                                        <span className="tu-landing-step-num">1</span>
-                                        <span>Pick a tool from the sidebar</span>
+                        {props.isAuthenticated ? (
+                            /* ══════════ SIGNED-IN DASHBOARD ══════════ */
+                            <>
+                                {/* Greeting + search */}
+                                <div className="tu-landing-greeting">
+                                    <div className="tu-landing-greeting-left">
+                                        <h1 className="tu-landing-title">
+                                            Welcome back, {props.user?.display_name?.split(' ')[0] || 'there'}
+                                        </h1>
+                                        <p className="tu-landing-subtitle">
+                                            Level {gamification?.level?.level || 1} {gamification?.level?.title || 'Beginner'} &middot; {gamification?.xp || 0} XP
+                                        </p>
                                     </div>
-                                    <div className="tu-landing-step">
-                                        <span className="tu-landing-step-num">2</span>
-                                        <span>Type or paste your text</span>
-                                    </div>
-                                    <div className="tu-landing-step">
-                                        <span className="tu-landing-step-num">3</span>
-                                        <span>Click <b>Run</b> to transform</span>
-                                    </div>
+                                    <button className="tu-landing-search-btn" onClick={() => search.open()}>
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                        Search tools...
+                                        <kbd>Ctrl+K</kbd>
+                                    </button>
                                 </div>
-                            </div>
 
-                            {/* Favourites / Recent */}
-                            <div className="tu-landing-section">
-                                <h3 className="tu-landing-heading">
-                                    {(gamification?.favorites?.length > 0) ? 'Favourites' : 'Quick access'}
-                                </h3>
-                                {(gamification?.favorites?.length > 0) ? (
-                                    gamification.favorites.slice(0, 5).map(id => {
-                                        const tool = TOOLS.find(t => t.id === id)
-                                        return tool ? (
-                                            <button key={id} className="tu-landing-link" onClick={() => handleToolClick(tool)}>
-                                                <span className="tu-landing-link-icon">{tool.icon}</span>
-                                                {tool.label}
-                                            </button>
-                                        ) : null
-                                    })
-                                ) : (
-                                    <>
-                                        {['lowercase', 'title_case', 'remove_extra_spaces', 'word_count', 'find_replace']
-                                            .map(id => TOOLS.find(t => t.id === id)).filter(Boolean)
-                                            .map(tool => (
-                                                <button key={tool.id} className="tu-landing-link" onClick={() => handleToolClick(tool)}>
-                                                    <span className="tu-landing-link-icon">{tool.icon}</span>
-                                                    {tool.label}
-                                                </button>
-                                            ))
-                                        }
-                                    </>
+                                {/* XP progress bar */}
+                                {gamification?.nextLevel && (
+                                    <div className="tu-landing-xp-bar">
+                                        <div className="tu-landing-xp-track">
+                                            <div
+                                                className="tu-landing-xp-fill"
+                                                style={{ width: `${Math.min((gamification.xpProgress || 0) * 100, 100)}%` }}
+                                            />
+                                        </div>
+                                        <span className="tu-landing-xp-label">
+                                            {gamification.xp || 0} / {gamification.nextLevel.xp} XP to {gamification.nextLevel.title}
+                                        </span>
+                                    </div>
                                 )}
-                            </div>
-                        </div>
 
-                        {/* Category grid */}
-                        <div className="tu-landing-categories">
-                            <h3 className="tu-landing-heading">Explore categories</h3>
-                            <div className="tu-landing-cat-grid">
-                                {USE_CASE_TABS.filter(t => t.id !== 'popular').map(tab => {
-                                    const count = TOOLS.filter(t => t.tabs?.includes(tab.id)).length
-                                    return (
-                                        <button
-                                            key={tab.id}
-                                            className="tu-landing-cat-card"
-                                            onClick={() => { setActiveTab(tab.id); setSidebarOpen(true) }}
-                                        >
-                                            <span className="tu-landing-cat-icon">
-                                                {ACTIVITY_ICONS[tab.id] || <span>{tab.icon}</span>}
-                                            </span>
-                                            <span className="tu-landing-cat-name">{tab.label}</span>
-                                            <span className="tu-landing-cat-count">{count} tools</span>
+                                {/* Dashboard grid */}
+                                <div className="tu-landing-dash-grid">
+                                    {/* Daily quest card */}
+                                    <div className="tu-landing-card tu-landing-card--quest">
+                                        <h3 className="tu-landing-card-title">
+                                            <span className="tu-landing-card-icon">&#x2728;</span>
+                                            Daily Quest
+                                        </h3>
+                                        {gamification?.dailyQuest?.id ? (() => {
+                                            const quest = QUEST_TEMPLATES.find(q => q.id === gamification.dailyQuest.id)
+                                            return quest ? (
+                                                <div className="tu-landing-quest-body">
+                                                    <p className="tu-landing-quest-text">{quest.text}</p>
+                                                    <div className="tu-landing-quest-footer">
+                                                        <span className="tu-landing-quest-xp">+{quest.xp} XP</span>
+                                                        {gamification.dailyQuest.completed
+                                                            ? <span className="tu-landing-quest-done">Completed!</span>
+                                                            : <span className="tu-landing-quest-pending">In progress</span>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            ) : null
+                                        })() : (
+                                            <p className="tu-landing-quest-text" style={{ color: 'var(--text-3)' }}>No quest today</p>
+                                        )}
+                                    </div>
+
+                                    {/* Stats card */}
+                                    <div className="tu-landing-card tu-landing-card--stats">
+                                        <h3 className="tu-landing-card-title">
+                                            <span className="tu-landing-card-icon">&#x1F4CA;</span>
+                                            Your Stats
+                                        </h3>
+                                        <div className="tu-landing-mini-stats">
+                                            <div className="tu-landing-mini-stat">
+                                                <span className="tu-landing-mini-stat-val">{gamification?.streak?.current || 0}</span>
+                                                <span className="tu-landing-mini-stat-label">Day Streak</span>
+                                            </div>
+                                            <div className="tu-landing-mini-stat">
+                                                <span className="tu-landing-mini-stat-val">{gamification?.totalOps || 0}</span>
+                                                <span className="tu-landing-mini-stat-label">Operations</span>
+                                            </div>
+                                            <div className="tu-landing-mini-stat">
+                                                <span className="tu-landing-mini-stat-val">{gamification?.discoveredTools?.length || 0}</span>
+                                                <span className="tu-landing-mini-stat-label">Tools Found</span>
+                                            </div>
+                                            <div className="tu-landing-mini-stat">
+                                                <span className="tu-landing-mini-stat-val">{gamification?.achievements?.length || 0}</span>
+                                                <span className="tu-landing-mini-stat-label">Badges</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Achievements card */}
+                                    <div className="tu-landing-card tu-landing-card--achievements">
+                                        <h3 className="tu-landing-card-title">
+                                            <span className="tu-landing-card-icon">&#x1F3C6;</span>
+                                            Recent Badges
+                                        </h3>
+                                        <div className="tu-landing-badge-row">
+                                            {(gamification?.achievements?.length > 0)
+                                                ? gamification.achievements.slice(-6).reverse().map(aid => {
+                                                    const ach = ACHIEVEMENTS.find(a => a.id === aid)
+                                                    return ach ? (
+                                                        <span key={aid} className="tu-landing-badge" title={`${ach.label}: ${ach.description}`}>
+                                                            {ach.icon}
+                                                        </span>
+                                                    ) : null
+                                                })
+                                                : <span className="tu-landing-badge-empty">Complete quests to earn badges</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Favorites + Recent tools */}
+                                <div className="tu-landing-tools-row">
+                                    {/* Favourites */}
+                                    <div className="tu-landing-card tu-landing-card--wide">
+                                        <h3 className="tu-landing-card-title">
+                                            <span className="tu-landing-card-icon">&#x2764;</span>
+                                            {gamification?.favorites?.length > 0 ? 'Your Favourites' : 'Popular Tools'}
+                                        </h3>
+                                        <div className="tu-landing-tool-grid">
+                                            {(gamification?.favorites?.length > 0
+                                                ? gamification.favorites.slice(0, 8).map(id => TOOLS.find(t => t.id === id)).filter(Boolean)
+                                                : ['fix_grammar', 'paraphrase', 'summarize', 'uppercase', 'lowercase', 'title_case', 'word_count', 'find_replace']
+                                                    .map(id => TOOLS.find(t => t.id === id)).filter(Boolean)
+                                            ).map(tool => (
+                                                <button key={tool.id} className="tu-landing-tool-btn" onClick={() => handleToolClick(tool)}>
+                                                    <span className={`tu-landing-tool-icon tu-titem-icon--${tool.color}`}>{tool.icon}</span>
+                                                    <span className="tu-landing-tool-name">{tool.label}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Most used */}
+                                    <div className="tu-landing-card tu-landing-card--wide">
+                                        <h3 className="tu-landing-card-title">
+                                            <span className="tu-landing-card-icon">&#x1F525;</span>
+                                            Most Used
+                                        </h3>
+                                        <div className="tu-landing-tool-grid">
+                                            {(() => {
+                                                const used = gamification?.toolsUsed || {}
+                                                const sorted = Object.entries(used).sort((a, b) => b[1] - a[1]).slice(0, 8)
+                                                if (sorted.length === 0) return (
+                                                    <span className="tu-landing-badge-empty">Start using tools to track your favorites</span>
+                                                )
+                                                return sorted.map(([id, count]) => {
+                                                    const tool = TOOLS.find(t => t.id === id)
+                                                    return tool ? (
+                                                        <button key={id} className="tu-landing-tool-btn" onClick={() => handleToolClick(tool)}>
+                                                            <span className={`tu-landing-tool-icon tu-titem-icon--${tool.color}`}>{tool.icon}</span>
+                                                            <span className="tu-landing-tool-name">{tool.label}</span>
+                                                            <span className="tu-landing-tool-count">{count}x</span>
+                                                        </button>
+                                                    ) : null
+                                                })
+                                            })()}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Category grid + Shortcuts */}
+                                <div className="tu-landing-bottom">
+                                    <div className="tu-landing-categories">
+                                        <h3 className="tu-landing-heading">Explore categories</h3>
+                                        <div className="tu-landing-cat-grid">
+                                            {USE_CASE_TABS.filter(t => t.id !== 'popular').map(tab => {
+                                                const count = TOOLS.filter(t => t.tabs?.includes(tab.id)).length
+                                                return (
+                                                    <button
+                                                        key={tab.id}
+                                                        className="tu-landing-cat-card"
+                                                        onClick={() => { setActiveTab(tab.id); setSidebarOpen(true) }}
+                                                    >
+                                                        <span className="tu-landing-cat-icon">
+                                                            {ACTIVITY_ICONS[tab.id] || <span>{tab.icon}</span>}
+                                                        </span>
+                                                        <span className="tu-landing-cat-name">{tab.label}</span>
+                                                        <span className="tu-landing-cat-count">{count} tools</span>
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    <div className="tu-landing-shortcuts">
+                                        <h3 className="tu-landing-heading">Keyboard shortcuts</h3>
+                                        <div className="tu-landing-shortcut-list">
+                                            <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>K</kbd><span>Command palette</span></div>
+                                            <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>&#x23CE;</kbd><span>Run tool</span></div>
+                                            <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>B</kbd><span>Toggle sidebar</span></div>
+                                            <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>Z</kbd><span>Undo</span></div>
+                                            <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>S</kbd><span>Save template</span></div>
+                                            <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>/</kbd><span>All shortcuts</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        ) : (
+                            /* ══════════ SIGNED-OUT MARKETING PAGE ══════════ */
+                            <>
+                                {/* Hero */}
+                                <div className="tu-landing-hero tu-landing-hero--big">
+                                    <h1 className="tu-landing-title tu-landing-title--big">
+                                        Fix, transform &amp; enhance<br />your text instantly
+                                    </h1>
+                                    <p className="tu-landing-subtitle tu-landing-subtitle--big">
+                                        {TOOLS.length}+ powerful tools for writing, coding, translating, and more &mdash; all in one place. No installs. No fluff.
+                                    </p>
+                                    <div className="tu-landing-hero-actions">
+                                        <button className="tu-landing-cta" onClick={() => navigate('/login')}>
+                                            Get Started Free
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                                         </button>
-                                    )
-                                })}
-                            </div>
-                        </div>
-
-                        {/* Stats + Shortcuts row */}
-                        <div className="tu-landing-bottom">
-                            {/* Your progress */}
-                            <div className="tu-landing-stats">
-                                <h3 className="tu-landing-heading">Your progress</h3>
-                                <div className="tu-landing-stat-grid">
-                                    <div className="tu-landing-stat">
-                                        <span className="tu-landing-stat-val">{gamification?.level?.name || 'Novice'}</span>
-                                        <span className="tu-landing-stat-label">Level</span>
-                                    </div>
-                                    <div className="tu-landing-stat">
-                                        <span className="tu-landing-stat-val">{gamification?.xp || 0}</span>
-                                        <span className="tu-landing-stat-label">XP earned</span>
-                                    </div>
-                                    <div className="tu-landing-stat">
-                                        <span className="tu-landing-stat-val">{gamification?.streak?.current || 0}</span>
-                                        <span className="tu-landing-stat-label">Day streak</span>
-                                    </div>
-                                    <div className="tu-landing-stat">
-                                        <span className="tu-landing-stat-val">{gamification?.discoveredTools?.length || 0}/{TOOLS.length}</span>
-                                        <span className="tu-landing-stat-label">Discovered</span>
+                                        <button className="tu-landing-cta-secondary" onClick={() => search.open()}>
+                                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                            Try a tool now
+                                            <kbd>Ctrl+K</kbd>
+                                        </button>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Keyboard shortcuts */}
-                            <div className="tu-landing-shortcuts">
-                                <h3 className="tu-landing-heading">Keyboard shortcuts</h3>
-                                <div className="tu-landing-shortcut-list">
-                                    <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>K</kbd><span>Command palette</span></div>
-                                    <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>↵</kbd><span>Run tool</span></div>
-                                    <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>B</kbd><span>Toggle sidebar</span></div>
-                                    <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>W</kbd><span>Close tab</span></div>
-                                    <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>S</kbd><span>Save template</span></div>
-                                    <div className="tu-landing-shortcut"><kbd>Ctrl</kbd><kbd>/</kbd><span>All shortcuts</span></div>
+                                {/* Feature highlights */}
+                                <div className="tu-landing-features">
+                                    <div className="tu-landing-feature">
+                                        <div className="tu-landing-feature-icon">
+                                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                                        </div>
+                                        <h3 className="tu-landing-feature-title">{TOOLS.filter(t => t.tabs?.includes('writing')).length}+ Writing Tools</h3>
+                                        <p className="tu-landing-feature-desc">Grammar fixes, paraphrasing, tone adjustment, summarization, proofreading, and more.</p>
+                                    </div>
+                                    <div className="tu-landing-feature">
+                                        <div className="tu-landing-feature-icon">
+                                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                                        </div>
+                                        <h3 className="tu-landing-feature-title">Developer Friendly</h3>
+                                        <p className="tu-landing-feature-desc">JSON formatting, Base64 encoding, regex testing, slug generation, and code utilities.</p>
+                                    </div>
+                                    <div className="tu-landing-feature">
+                                        <div className="tu-landing-feature-icon">
+                                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M16 14H8a4 4 0 0 0-4 4v2h16v-2a4 4 0 0 0-4-4z"/></svg>
+                                        </div>
+                                        <h3 className="tu-landing-feature-title">AI-Powered</h3>
+                                        <p className="tu-landing-feature-desc">Translate, rewrite in any tone, ELI5, summarize — backed by state-of-the-art AI models.</p>
+                                    </div>
+                                    <div className="tu-landing-feature">
+                                        <div className="tu-landing-feature-icon">
+                                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                                        </div>
+                                        <h3 className="tu-landing-feature-title">Instant Transforms</h3>
+                                        <p className="tu-landing-feature-desc">UPPERCASE, lowercase, title case, reverse, sort lines, remove duplicates — one click away.</p>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
+
+                                {/* How it works */}
+                                <div className="tu-landing-how">
+                                    <h2 className="tu-landing-section-title">How it works</h2>
+                                    <div className="tu-landing-how-steps">
+                                        <div className="tu-landing-how-step">
+                                            <span className="tu-landing-step-num">1</span>
+                                            <div>
+                                                <h4 className="tu-landing-how-step-title">Pick a tool</h4>
+                                                <p className="tu-landing-how-step-desc">Browse {TOOLS.length}+ tools by category or search with Ctrl+K</p>
+                                            </div>
+                                        </div>
+                                        <div className="tu-landing-how-step">
+                                            <span className="tu-landing-step-num">2</span>
+                                            <div>
+                                                <h4 className="tu-landing-how-step-title">Paste or type your text</h4>
+                                                <p className="tu-landing-how-step-desc">The split editor shows input on the left, output on the right</p>
+                                            </div>
+                                        </div>
+                                        <div className="tu-landing-how-step">
+                                            <span className="tu-landing-step-num">3</span>
+                                            <div>
+                                                <h4 className="tu-landing-how-step-title">Click Run or press Ctrl+Enter</h4>
+                                                <p className="tu-landing-how-step-desc">Your transformed text appears instantly. Copy, export, or chain more tools</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Category grid */}
+                                <div className="tu-landing-categories">
+                                    <h2 className="tu-landing-section-title">Explore categories</h2>
+                                    <div className="tu-landing-cat-grid">
+                                        {USE_CASE_TABS.filter(t => t.id !== 'popular').map(tab => {
+                                            const count = TOOLS.filter(t => t.tabs?.includes(tab.id)).length
+                                            return (
+                                                <button
+                                                    key={tab.id}
+                                                    className="tu-landing-cat-card"
+                                                    onClick={() => { setActiveTab(tab.id); setSidebarOpen(true) }}
+                                                >
+                                                    <span className="tu-landing-cat-icon">
+                                                        {ACTIVITY_ICONS[tab.id] || <span>{tab.icon}</span>}
+                                                    </span>
+                                                    <span className="tu-landing-cat-name">{tab.label}</span>
+                                                    <span className="tu-landing-cat-count">{count} tools</span>
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* Social proof / highlights */}
+                                <div className="tu-landing-highlights">
+                                    <div className="tu-landing-highlight">
+                                        <span className="tu-landing-highlight-val">{TOOLS.length}+</span>
+                                        <span className="tu-landing-highlight-label">Text tools</span>
+                                    </div>
+                                    <div className="tu-landing-highlight">
+                                        <span className="tu-landing-highlight-val">{USE_CASE_TABS.filter(t => t.id !== 'popular' && t.id !== 'all').length}</span>
+                                        <span className="tu-landing-highlight-label">Categories</span>
+                                    </div>
+                                    <div className="tu-landing-highlight">
+                                        <span className="tu-landing-highlight-val">{ACHIEVEMENTS.length}</span>
+                                        <span className="tu-landing-highlight-label">Achievements</span>
+                                    </div>
+                                    <div className="tu-landing-highlight">
+                                        <span className="tu-landing-highlight-val">Free</span>
+                                        <span className="tu-landing-highlight-label">To get started</span>
+                                    </div>
+                                </div>
+
+                                {/* Bottom CTA */}
+                                <div className="tu-landing-bottom-cta">
+                                    <h2 className="tu-landing-section-title">Ready to fix your text?</h2>
+                                    <p className="tu-landing-subtitle">Create a free account to sync your progress, earn XP, and unlock achievements.</p>
+                                    <div className="tu-landing-hero-actions">
+                                        <button className="tu-landing-cta" onClick={() => navigate('/login')}>
+                                            Sign Up Free
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                                        </button>
+                                        <button className="tu-landing-cta-secondary" onClick={() => search.open()}>
+                                            Or just start using tools
+                                        </button>
+                                    </div>
+                                </div>
+                            </>
+                        )}
                     </div>
                 )}
 
@@ -1213,6 +1411,7 @@ export default function TextForm(props) {
                                     speech={speech} onDyslexiaToggle={handleDyslexiaMode}
                                     activeTool={ws?.type === 'tool' ? ws.tool : null}
                                     loading={loading}
+                                    exportTools={exportTools}
                                 />
                             )
                         })()}
