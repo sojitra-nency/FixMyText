@@ -14,31 +14,17 @@ function truncate(str, len = 80) {
 }
 
 const TABS = [
-    { id: 'pipeline', label: 'Pipeline', icon: '▶' },
-    { id: 'history',  label: 'History',  icon: '⧖' },
-    { id: 'wordfreq', label: 'Word Frequency', icon: '≡' },
     { id: 'stats',    label: 'Stats Dashboard', icon: '☷' },
+    { id: 'history',  label: 'History',  icon: '⧖' },
+    { id: 'pipeline', label: 'Pipeline', icon: '▶' },
 ]
 
 export default memo(function BottomPanel({
     pipeline, history, text, gamification, style,
 }) {
-    const [activeTab, setActiveTab] = useState('pipeline')
+    const [activeTab, setActiveTab] = useState('stats')
     const [collapsed, setCollapsed] = useState(false)
 
-    // Word frequency computed on demand
-    const wordFreqData = useMemo(() => {
-        if (activeTab !== 'wordfreq' || !text) return null
-        const words = text.toLowerCase().match(/[a-z\u00C0-\u024F]+(?:'[a-z]+)?/gi)
-        if (!words || words.length === 0) return { total: 0, unique: 0, entries: [] }
-        const freq = {}
-        for (const w of words) {
-            const lower = w.toLowerCase()
-            freq[lower] = (freq[lower] || 0) + 1
-        }
-        const entries = Object.entries(freq).sort((a, b) => b[1] - a[1])
-        return { total: words.length, unique: entries.length, entries }
-    }, [activeTab, text])
 
     // Text stats
     const stats = useMemo(() => {
@@ -157,62 +143,6 @@ export default memo(function BottomPanel({
                                                             <td className="tu-bottom-cell-actions">
                                                                 <button className="tu-bottom-action" onClick={() => history.handleRestoreOriginal(i)} title="Restore input">↩</button>
                                                                 <button className="tu-bottom-action" onClick={() => history.handleRestoreResult(i)} title="Restore output">↪</button>
-                                                            </td>
-                                                        </tr>
-                                                    )
-                                                })}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    )}
-
-                    {activeTab === 'wordfreq' && (
-                        <div className="tu-bottom-content">
-                            {!text ? (
-                                <div className="tu-bottom-empty">
-                                    <span className="tu-bottom-empty-icon">≡</span>
-                                    <span>Enter some text to see word frequency analysis.</span>
-                                </div>
-                            ) : wordFreqData && wordFreqData.entries.length === 0 ? (
-                                <div className="tu-bottom-empty">
-                                    <span>No words found in text.</span>
-                                </div>
-                            ) : wordFreqData && (
-                                <>
-                                    <div className="tu-bottom-toolbar">
-                                        <span className="tu-bottom-toolbar-info">
-                                            <b>{wordFreqData.total}</b> total &middot; <b>{wordFreqData.unique}</b> unique
-                                        </span>
-                                    </div>
-                                    <div className="tu-bottom-scroll">
-                                        <table className="tu-bottom-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>#</th>
-                                                    <th>Word</th>
-                                                    <th>Count</th>
-                                                    <th>%</th>
-                                                    <th>Bar</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {wordFreqData.entries.slice(0, 50).map(([word, count], i) => {
-                                                    const pct = ((count / wordFreqData.total) * 100)
-                                                    const maxCount = wordFreqData.entries[0][1]
-                                                    const barWidth = (count / maxCount) * 100
-                                                    return (
-                                                        <tr key={word}>
-                                                            <td className="tu-bottom-cell-rank">{i + 1}</td>
-                                                            <td className="tu-bottom-cell-word">{word}</td>
-                                                            <td className="tu-bottom-cell-count">{count}</td>
-                                                            <td className="tu-bottom-cell-pct">{pct.toFixed(1)}%</td>
-                                                            <td className="tu-bottom-cell-bar">
-                                                                <div className="tu-freq-bar">
-                                                                    <div className="tu-freq-bar-fill" style={{ width: `${barWidth}%` }} />
-                                                                </div>
                                                             </td>
                                                         </tr>
                                                     )

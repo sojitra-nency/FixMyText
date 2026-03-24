@@ -79,20 +79,13 @@ function SelectDropdown({ options, value, onChange, disabled, triggerRef }) {
   )
 }
 
-function ToolPanelItem({ tool, disabled, onClick, isFavorite, onToggleFavorite, isActive, isSuggested, ai, onHover, onLeave }) {
-  const [selectVal, setSelectVal] = useState(tool.options?.[0]?.[0] || '')
+function ToolPanelItem({ tool, disabled, onClick, isFavorite, onToggleFavorite, isActive, isSuggested, onHover, onLeave }) {
   const [hovered, setHovered] = useState(false)
   const isDisabled = disabled && tool.type !== 'drawer' && tool.type !== 'action'
   const itemRef = useRef(null)
-  const isSelect = tool.type === 'select'
 
   const handleClick = () => {
     if (isDisabled) return
-    if (isSelect) {
-      if (ai && tool.setterKey && ai[tool.setterKey]) ai[tool.setterKey](selectVal)
-      setTimeout(() => onClick(), 10)
-      return
-    }
     onClick()
   }
 
@@ -122,15 +115,6 @@ function ToolPanelItem({ tool, disabled, onClick, isFavorite, onToggleFavorite, 
       >
         <ToolIcon icon={tool.icon} color={tool.color} toolId={tool.id} />
         <span className="tu-titem-name">{tool.label}</span>
-        {isSelect && (
-          <SelectDropdown
-            options={tool.options || []}
-            value={selectVal}
-            onChange={setSelectVal}
-            disabled={disabled}
-            triggerRef={itemRef}
-          />
-        )}
         {isSuggested && <span className="tu-titem-suggested">suggested</span>}
         <button
           className={`tu-titem-fav${isFavorite ? ' tu-titem-fav--active' : ''}`}
@@ -158,7 +142,7 @@ function GroupHeader({ label, count, collapsed, onToggle }) {
 
 export default memo(function ToolPanel({
   tools, activeTab, onTabChange, onToolClick,
-  disabled, gamification, activePanel, ai,
+  disabled, gamification, activePanel,
   hideTabs, suggestedToolIds = [],
 }) {
   const [tooltip, setTooltip] = useState(null)
@@ -189,7 +173,7 @@ export default memo(function ToolPanel({
 
   // Count tools per tab
   const tabCounts = useMemo(() => {
-    const counts = { all: tools.length, popular: tools.length }
+    const counts = { all: tools.length }
     for (const tab of USE_CASE_TABS) {
       if (!counts[tab.id]) {
         counts[tab.id] = tools.filter(t => t.tabs?.includes(tab.id)).length
@@ -201,18 +185,8 @@ export default memo(function ToolPanel({
   // Filter tools by active tab
   const filteredTools = useMemo(() => {
     if (activeTab === 'all') return [...tools].sort((a, b) => a.label.localeCompare(b.label))
-    if (activeTab === 'popular') {
-      const suggested = new Set(suggestedToolIds)
-      const usage = gamification?.toolsUsed || {}
-      return [...tools].sort((a, b) => {
-        const aSug = suggested.has(a.id) ? 1 : 0
-        const bSug = suggested.has(b.id) ? 1 : 0
-        if (aSug !== bSug) return bSug - aSug
-        return (usage[b.id] || 0) - (usage[a.id] || 0)
-      })
-    }
     return tools.filter(t => t.tabs?.includes(activeTab))
-  }, [tools, activeTab, gamification?.toolsUsed, suggestedToolIds])
+  }, [tools, activeTab])
 
   // Group tools — each group contains tools sorted alphabetically
   const groupedTools = useMemo(() => {
@@ -297,7 +271,6 @@ export default memo(function ToolPanel({
                         onToggleFavorite={gamification?.toggleFavorite}
                         isActive={tool.type === 'drawer' && activePanel === tool.panelId}
                         isSuggested={suggestedToolIds.includes(tool.id)}
-                        ai={ai}
                         onHover={handleHover}
                         onLeave={handleLeave}
                       />

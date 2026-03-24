@@ -178,44 +178,121 @@
   z-index: 1000;
 }
 
-/* ── Achievement Toast ───────────────────────────── */
-.tu-achieve-toast {
+/* ── Achievement Celebration Modal ───────────────── */
+.tu-achieve-overlay {
   position: fixed;
-  top: 50px;
-  right: 16px;
+  inset: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border-radius: var(--r-md);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-  z-index: 1001;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  z-index: 2000;
 }
 
-.tu-achieve-toast-icon {
-  font-size: 1.5rem;
-}
-
-.tu-achieve-toast-body {
+.tu-achieve-modal {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  padding: 36px 40px 20px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--amber);
+  box-shadow:
+    0 0 40px rgba(245, 158, 11, 0.15),
+    0 20px 60px rgba(0, 0, 0, 0.4);
+  min-width: 280px;
+  max-width: 360px;
+  overflow: hidden;
 }
 
-.tu-achieve-toast-title {
-  font-size: 0.62rem;
-  font-weight: 700;
+/* Confetti burst */
+.tu-achieve-confetti-wrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.tu-achieve-confetti {
+  position: absolute;
+  top: 0;
+  pointer-events: none;
+}
+
+/* Glow ring behind icon */
+.tu-achieve-glow {
+  position: absolute;
+  top: 20px;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.2) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Icon */
+.tu-achieve-icon {
+  font-size: 2.8rem;
+  line-height: 1;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.4));
+  z-index: 1;
+}
+
+/* Badge label */
+.tu-achieve-badge {
+  font-size: 0.58rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.12em;
   color: var(--amber);
+  background: rgba(245, 158, 11, 0.1);
+  padding: 3px 12px;
+  border-radius: var(--r-pill);
+  margin-bottom: 8px;
 }
 
-.tu-achieve-toast-name {
-  font-size: 0.78rem;
-  font-weight: 600;
+/* Achievement name */
+.tu-achieve-name {
+  font-size: 1.1rem;
+  font-weight: 700;
   color: var(--text);
+  margin: 0 0 4px;
+  text-align: center;
+}
+
+/* Description */
+.tu-achieve-desc {
+  font-size: 0.72rem;
+  color: var(--text-3);
+  margin: 0 0 12px;
+  text-align: center;
+  line-height: 1.4;
+}
+
+/* Auto-close progress bar */
+.tu-achieve-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--amber);
+  transform-origin: left;
+  opacity: 0.6;
+}
+
+/* Dismiss hint */
+.tu-achieve-hint {
+  font-size: 0.55rem;
+  color: var(--text-3);
+  margin-top: 14px;
+  opacity: 0.5;
 }
 
 /* ── Command Palette (VSCode style) ───────────────── */

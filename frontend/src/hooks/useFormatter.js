@@ -1,15 +1,17 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 
 const defaultFmtCfg = {
-    tabWidth:         2,
-    useTabs:          false,
-    semi:             true,
-    singleQuote:      false,
-    trailingComma:    'es5',
-    bracketSpacing:   true,
-    arrowParens:      'always',
-    jsxSingleQuote:   false,
-    sortImports:      true,
+    tabWidth:                  2,
+    useTabs:                   false,
+    semi:                      true,
+    singleQuote:               false,
+    trailingComma:             'es5',
+    bracketSpacing:            true,
+    arrowParens:               'always',
+    jsxSingleQuote:            false,
+    sortImports:               true,
+    bracketSameLine:           false,
+    htmlWhitespaceSensitivity: 'css',
 }
 
 const parserImports = {
@@ -43,11 +45,14 @@ const sortImportsAlphabetically = (code) => {
 
 export default function useFormatter(text, setLoading, showAlert, onResult) {
     const [fmtCfg, setFmtCfg] = useState(defaultFmtCfg)
+    // Ref always holds the latest config — avoids stale closures in handlers
+    const cfgRef = useRef(fmtCfg)
+    useEffect(() => { cfgRef.current = fmtCfg }, [fmtCfg])
 
-    const runFormat = async (parser, successMsg, cfgOverride) => {
+    const runFormat = async (parser, successMsg) => {
         if (!text) return
         setLoading(true)
-        const cfg = cfgOverride || fmtCfg
+        const cfg = cfgRef.current
         try {
             const [prettierMod, parserMod] = await Promise.all([
                 import('prettier/standalone'),
@@ -60,14 +65,16 @@ export default function useFormatter(text, setLoading, showAlert, onResult) {
             const formatted = prettierMod.default.format(code, {
                 parser,
                 plugins: [parserMod.default],
-                tabWidth:       cfg.tabWidth,
-                useTabs:        cfg.useTabs,
-                semi:           cfg.semi,
-                singleQuote:    cfg.singleQuote,
-                trailingComma:  cfg.trailingComma,
-                bracketSpacing: cfg.bracketSpacing,
-                arrowParens:    cfg.arrowParens,
-                jsxSingleQuote: cfg.jsxSingleQuote,
+                tabWidth:                  cfg.tabWidth,
+                useTabs:                   cfg.useTabs,
+                semi:                      cfg.semi,
+                singleQuote:               cfg.singleQuote,
+                trailingComma:             cfg.trailingComma,
+                bracketSpacing:            cfg.bracketSpacing,
+                arrowParens:               cfg.arrowParens,
+                jsxSingleQuote:            cfg.jsxSingleQuote,
+                bracketSameLine:           cfg.bracketSameLine,
+                htmlWhitespaceSensitivity: cfg.htmlWhitespaceSensitivity,
             })
             onResult(successMsg, formatted)
             showAlert(successMsg, 'success')

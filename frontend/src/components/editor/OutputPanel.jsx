@@ -3,18 +3,17 @@ import { createPortal } from 'react-dom'
 import { marked } from 'marked'
 
 export default memo(function OutputPanel({
-  aiResult, hasMarkdown, onAiAccept, onAiDismiss,
+  aiResult, hasMarkdown, onAiDismiss,
   previewMode, setPreviewMode, showAlert,
   text, dyslexiaMode, markdownMode,
   speech, onDyslexiaToggle,
   activeTool, loading, exportTools,
 }) {
   const [saveMenuOpen, setSaveMenuOpen] = useState(false)
+  const [mdPreview, setMdPreview] = useState(false)
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 })
   const saveBtnRef = useRef(null)
   const saveMenuRef = useRef(null)
-  const handleAccept = () => { onAiAccept(); setPreviewMode(null) }
-
   const showResult = previewMode === 'result' && aiResult
   const showDyslexia = previewMode === 'dyslexia' && dyslexiaMode && text
   const showMarkdown = previewMode === 'markdown' && markdownMode && text
@@ -22,6 +21,11 @@ export default memo(function OutputPanel({
   // Determine output content
   const outputText = showResult ? aiResult.result : showDyslexia || showMarkdown ? text : ''
   const hasContent = showResult || showDyslexia || showMarkdown
+
+  // Keep export hook in sync with current output
+  useEffect(() => {
+    if (exportTools?.setOutputText) exportTools.setOutputText(outputText)
+  }, [outputText, exportTools])
 
   // Stats for output text (memoized to avoid recomputing on every render)
   const { words, chars, sentences } = useMemo(() => ({
@@ -93,6 +97,14 @@ export default memo(function OutputPanel({
         <span className="tu-save-menu-icon">{'{}'}</span>
         <span>Save JSON</span>
       </button>
+      <button className="tu-save-menu-item" onClick={() => { exportTools.handleDownloadCsv(); setSaveMenuOpen(false) }}>
+        <span className="tu-save-menu-icon">.csv</span>
+        <span>Save CSV</span>
+      </button>
+      <button className="tu-save-menu-item" onClick={() => { exportTools.handleDownloadMd(); setSaveMenuOpen(false) }}>
+        <span className="tu-save-menu-icon">.md</span>
+        <span>Save Markdown</span>
+      </button>
     </div>,
     document.body
   )
@@ -141,12 +153,6 @@ export default memo(function OutputPanel({
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
           <span>Copy</span>
         </button>
-        {showResult && (
-          <button className="tu-input-toolbar-btn tu-input-toolbar-btn--accept" onClick={handleAccept} title="Accept and replace input">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            <span>Accept</span>
-          </button>
-        )}
         <button className="tu-input-toolbar-btn tu-input-toolbar-btn--danger" onClick={handleClear} title="Dismiss output">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           <span>Dismiss</span>
@@ -160,6 +166,10 @@ export default memo(function OutputPanel({
         <button className={`tu-input-toolbar-btn${dyslexiaMode ? ' tu-input-toolbar-btn--active' : ''}`} onClick={onDyslexiaToggle} title="Dyslexia-friendly font">
           <span className="tu-input-toolbar-icon-text">Aa</span>
           <span>Dyslexia</span>
+        </button>
+        <button className={`tu-input-toolbar-btn${mdPreview ? ' tu-input-toolbar-btn--active' : ''}`} onClick={() => setMdPreview(p => !p)} title="Toggle Markdown preview">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M7 8v8l2.5-3 2.5 3V8"/><path d="M17 12l-2-2v8"/></svg>
+          <span>Markdown</span>
         </button>
         {exportTools && (
           <>
@@ -189,7 +199,7 @@ export default memo(function OutputPanel({
         </div>
         <div className="tu-output-text">
           {showResult ? (
-            hasMarkdown(aiResult.result)
+            mdPreview || (activeTool?.type === 'ai' && hasMarkdown(aiResult.result))
               ? <div className="tu-preview-markdown" dangerouslySetInnerHTML={{ __html: marked.parse(aiResult.result) }} />
               : <span style={{ whiteSpace: 'pre-wrap' }}>{aiResult.result}</span>
           ) : showDyslexia ? (

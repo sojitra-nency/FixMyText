@@ -50,14 +50,13 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 // SVG icons for activity bar (module-level constant — avoids recreation on every render)
 const ACTIVITY_ICONS = {
-    popular: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 12c2-2.96 0-7-1-8 0 3.038-1.773 4.741-3 6-1.226 1.26-2 3.24-2 5a6 6 0 1 0 12 0c0-1.532-1.056-3.94-2-5-1.786 3-2.791 3-4 2z"/></svg>,
+    all: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,
     writing: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>,
     transform: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>,
     code: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>,
     ai: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M16 14H8a4 4 0 0 0-4 4v2h16v-2a4 4 0 0 0-4-4z"/><circle cx="9" cy="6.5" r="0.8" fill="currentColor" stroke="none"/><circle cx="15" cy="6.5" r="0.8" fill="currentColor" stroke="none"/></svg>,
     language: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>,
     encode: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
-    all: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>,
 }
 
 // Drawer panel metadata (static — no need to recreate per render)
@@ -135,7 +134,7 @@ export default function TextForm(props) {
     const history = useHistory(setText, showAlert)
     const ai = useAiTools(text, setText, setMarkdownMode, setPreviewMode, showAlert, history.pushHistory)
     const speech = useSpeech(text, setText, showAlert)
-    const exportTools = useExport(text, setLocalLoading, showAlert)
+    const exportTools = useExport(setLocalLoading, showAlert)
     const regex = useRegexTester(text, showAlert)
     const templates = useTemplates(text, setText, showAlert)
     const wordFreq = useWordFrequency(text, showAlert, ai.setAiResult, setPreviewMode, history.pushHistory)
@@ -167,12 +166,12 @@ export default function TextForm(props) {
     // Set default tab from persona
     useEffect(() => {
         if (gamification?.persona && !activeTab) {
-            setActiveTab(PERSONAS[gamification.persona]?.defaultTab || 'popular')
+            setActiveTab(PERSONAS[gamification.persona]?.defaultTab || 'all')
         }
     }, [gamification?.persona, activeTab])
 
     useEffect(() => {
-        if (!activeTab) setActiveTab('popular')
+        if (!activeTab) setActiveTab('all')
     }, [activeTab])
 
     // Capture AI results per-tool for persistence
@@ -419,6 +418,9 @@ export default function TextForm(props) {
             }
         }
         setActiveWorkspaceId(tabId)
+        // Clear stale global output state so the new tab starts clean
+        ai.setAiResult(null)
+        setPreviewMode(null)
     }, [toolTexts])
 
     // ── Execute a tool (called from ToolView's Run button) ──
@@ -511,6 +513,20 @@ export default function TextForm(props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [text, activeWorkspaceId])
 
+    // ── Auto-run formatter when config changes ───────────
+    const fmtCfgRef = useRef(formatter.fmtCfg)
+    useEffect(() => {
+        if (fmtCfgRef.current === formatter.fmtCfg) return
+        fmtCfgRef.current = formatter.fmtCfg
+        if (!activeWorkspaceId || !text || loading) return
+        const ws = workspaceTabs.find(t => t.id === activeWorkspaceId)
+        if (!ws || ws.type !== 'tool') return
+        if (!['js_fmt','ts_fmt','css_fmt','html_fmt'].includes(ws.tool.id)) return
+        const timer = setTimeout(() => executeToolAction(ws.tool), 300)
+        return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [formatter.fmtCfg])
+
     // ── Keyboard Shortcuts (power-user hotkeys) ─────────────
     // Use a ref so the keydown handler always sees the latest closures
     // without triggering re-registration on every render.
@@ -541,7 +557,7 @@ export default function TextForm(props) {
         redo: () => history.handleRedo(),
         copyOutput: () => {
             const ws = workspaceTabs.find(t => t.id === activeWorkspaceId)
-            const result = ws?.type === 'tool' ? toolResults[ws.tool.id] : ai.aiResult
+            const result = ws?.type === 'tool' ? (toolResults[ws.tool.id] || null) : ai.aiResult
             if (result?.result) {
                 navigator.clipboard.writeText(result.result)
                 showAlert('Output copied', 'success')
@@ -598,10 +614,10 @@ export default function TextForm(props) {
 
     const renderDrawerContent = () => {
         switch (activePanel) {
-            case 'find': return <FindReplaceDrawer {...findReplace} disabled={disabled} />
+            case 'find': return null // Renders inline in input area
             case 'compare': return null // Compare uses its own layout
-            case 'randtext': return <RandomTextDrawer {...generators} />
-            case 'password': return <PasswordDrawer {...generators} showAlert={showAlert} />
+            case 'randtext': return null // Renders inline in input area
+            case 'password': return null // Renders inline in input area
             case 'regex': return <RegexDrawer {...regex} disabled={disabled} />
             case 'templates': return <TemplatesDrawer {...templates} disabled={disabled} />
             case 'history': return <HistoryDrawer {...history} setText={setText} showAlert={showAlert} />
@@ -688,7 +704,7 @@ export default function TextForm(props) {
                         {activeTab === '_new' ? "What's New" : activeTab === '_templates' ? 'Templates' : activeTab === '_history' ? 'History' : activeTab === '_favourites' ? 'Favourites' : USE_CASE_TABS.find(t => t.id === activeTab)?.label || 'Explorer'}
                         {activeTab && !activeTab.startsWith('_') && (
                             <span className="tu-sidebar-header-count">
-                                {activeTab === 'all' || activeTab === 'popular' ? TOOLS.length : TOOLS.filter(t => t.tabs?.includes(activeTab)).length}
+                                {activeTab === 'all' ? TOOLS.length : TOOLS.filter(t => t.tabs?.includes(activeTab)).length}
                             </span>
                         )}
                     </span>
@@ -1024,36 +1040,56 @@ export default function TextForm(props) {
             {/* ─── Center: Editor Area ─── */}
             <div className="tu-forge-center">
                 {/* ─── Workspace Tab Bar (top-level, tools as files) ─── */}
-                <div className="tu-tab-bar">
-                    {workspaceTabs.map(tab => (
-                        <div
-                            key={tab.id}
-                            className={`tu-tab${activeWorkspaceId === tab.id ? ' tu-tab--active' : ''}`}
-                            onClick={() => {
-                                setActiveWorkspaceId(tab.id)
-                                if (tab.type === 'drawer') setActivePanel(tab.panelId)
-                            }}
-                            title={`~/FixMyText/workspace/${tab.label}`}
-                        >
-                            <span className="tu-tab-icon">{tab.icon}</span>
-                            <span className="tu-tab-name">{tab.label}</span>
-                            <button
-                                className="tu-tab-save"
-                                onClick={e => {
-                                    e.stopPropagation()
-                                    setSaveModal({ tabId: tab.id, defaultName: tab.label })
-                                }}
-                                title="Save to templates (Ctrl+S)"
-                            >
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                {workspaceTabs.length > 0 && <div className="tu-tab-bar-wrap">
+                    {(() => {
+                        const el = document.querySelector('.tu-tab-bar')
+                        const overflows = el ? el.scrollWidth > el.clientWidth : false
+                        return overflows ? (
+                            <button className="tu-tab-scroll tu-tab-scroll--left" onClick={() => { if (el) el.scrollBy({ left: -200, behavior: 'smooth' }) }} title="Scroll tabs left">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
                             </button>
-                            <button
-                                className="tu-tab-close"
-                                onClick={e => { e.stopPropagation(); closeWorkspaceTab(tab.id) }}
-                            >✕</button>
-                        </div>
-                    ))}
-                </div>
+                        ) : null
+                    })()}
+                    <div className="tu-tab-bar" onWheel={e => { e.currentTarget.scrollLeft += e.deltaY; e.preventDefault() }}>
+                        {workspaceTabs.map(tab => (
+                            <div
+                                key={tab.id}
+                                className={`tu-tab${activeWorkspaceId === tab.id ? ' tu-tab--active' : ''}`}
+                                onClick={() => {
+                                    setActiveWorkspaceId(tab.id)
+                                    if (tab.type === 'drawer') setActivePanel(tab.panelId)
+                                }}
+                                title={`~/FixMyText/workspace/${tab.label}`}
+                            >
+                                <ToolIcon icon={tab.icon} color={tab.tool?.color || tab.color} toolId={tab.tool?.id || tab.panelId} />
+                                <span className="tu-tab-name">{tab.label}</span>
+                                <button
+                                    className="tu-tab-save"
+                                    onClick={e => {
+                                        e.stopPropagation()
+                                        setSaveModal({ tabId: tab.id, defaultName: tab.label })
+                                    }}
+                                    title="Save to templates (Ctrl+S)"
+                                >
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                                </button>
+                                <button
+                                    className="tu-tab-close"
+                                    onClick={e => { e.stopPropagation(); closeWorkspaceTab(tab.id) }}
+                                >✕</button>
+                            </div>
+                        ))}
+                    </div>
+                    {(() => {
+                        const el = document.querySelector('.tu-tab-bar')
+                        const overflows = el ? el.scrollWidth > el.clientWidth : false
+                        return overflows ? (
+                            <button className="tu-tab-scroll tu-tab-scroll--right" onClick={() => { if (el) el.scrollBy({ left: 200, behavior: 'smooth' }) }} title="Scroll tabs right">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                            </button>
+                        ) : null
+                    })()}
+                </div>}
 
                 {/* ─── Landing page (no tool selected) ─── */}
                 {!activeWorkspaceId && (
@@ -1084,7 +1120,7 @@ export default function TextForm(props) {
                                         <div className="tu-landing-xp-track">
                                             <div
                                                 className="tu-landing-xp-fill"
-                                                style={{ width: `${Math.min((gamification.xpProgress || 0) * 100, 100)}%` }}
+                                                style={{ width: `${Math.min(gamification.xpProgress || 0, 100)}%` }}
                                             />
                                         </div>
                                         <span className="tu-landing-xp-label">
@@ -1223,7 +1259,7 @@ export default function TextForm(props) {
                                     <div className="tu-landing-categories">
                                         <h3 className="tu-landing-heading">Explore categories</h3>
                                         <div className="tu-landing-cat-grid">
-                                            {USE_CASE_TABS.filter(t => t.id !== 'popular').map(tab => {
+                                            {USE_CASE_TABS.filter(t => t.id !== 'all').map(tab => {
                                                 const count = TOOLS.filter(t => t.tabs?.includes(tab.id)).length
                                                 return (
                                                     <button
@@ -1343,7 +1379,7 @@ export default function TextForm(props) {
                                 <div className="tu-landing-categories">
                                     <h2 className="tu-landing-section-title">Explore categories</h2>
                                     <div className="tu-landing-cat-grid">
-                                        {USE_CASE_TABS.filter(t => t.id !== 'popular').map(tab => {
+                                        {USE_CASE_TABS.filter(t => t.id !== 'all').map(tab => {
                                             const count = TOOLS.filter(t => t.tabs?.includes(tab.id)).length
                                             return (
                                                 <button
@@ -1369,7 +1405,7 @@ export default function TextForm(props) {
                                         <span className="tu-landing-highlight-label">Text tools</span>
                                     </div>
                                     <div className="tu-landing-highlight">
-                                        <span className="tu-landing-highlight-val">{USE_CASE_TABS.filter(t => t.id !== 'popular' && t.id !== 'all').length}</span>
+                                        <span className="tu-landing-highlight-val">{USE_CASE_TABS.filter(t => t.id !== 'all').length}</span>
                                         <span className="tu-landing-highlight-label">Categories</span>
                                     </div>
                                     <div className="tu-landing-highlight">
@@ -1401,9 +1437,24 @@ export default function TextForm(props) {
                     </div>
                 )}
 
-                {activeWorkspaceId && <><div ref={splitRef} className="tu-editor-split" style={{ gridTemplateColumns: `${splitResize.size}fr 4px ${100 - splitResize.size}fr` }}>
-                    {/* ─── Left: Input (+ Compare With when compare tool is active) ─── */}
+                {activeWorkspaceId && <>
+                <div ref={splitRef} className="tu-editor-split" style={{ gridTemplateColumns: `${splitResize.size}fr 4px ${100 - splitResize.size}fr` }}>
+                    {/* ─── Left: Input (or generator panel for no-input tools) ─── */}
                     <div className={`tu-editor-input${workspaceTabs.find(t => t.id === activeWorkspaceId)?.panelId === 'compare' ? ' tu-editor-input--split' : ''}`}>
+                        {['password', 'randtext'].includes(workspaceTabs.find(t => t.id === activeWorkspaceId)?.panelId) ? (
+                            <div className="tu-gen-fullpage">
+                                {workspaceTabs.find(t => t.id === activeWorkspaceId)?.panelId === 'password'
+                                    ? <PasswordDrawer {...generators} showAlert={showAlert} onResult={(pwd) => {
+                                        ai.setAiResult({ label: 'Password', result: pwd })
+                                        setPreviewMode('result')
+                                    }} />
+                                    : <RandomTextDrawer {...generators} onResult={(txt) => {
+                                        ai.setAiResult({ label: 'Random Text', result: txt })
+                                        setPreviewMode('result')
+                                    }} />
+                                }
+                            </div>
+                        ) : (<>
                         <div className="tu-editor-topbar">
                             <span className="tu-editor-label" title="~/FixMyText/workspace/input.txt">INPUT</span>
                             <div className="tu-topbar-stats">
@@ -1445,6 +1496,10 @@ export default function TextForm(props) {
                                 <span>Dyslexia</span>
                             </button>
                         </div>
+                        {/* Find & Replace bar — shown inline below toolbar */}
+                        {workspaceTabs.find(t => t.id === activeWorkspaceId)?.panelId === 'find' && (
+                            <FindReplaceDrawer {...findReplace} disabled={disabled} text={text} />
+                        )}
                         {/* Formatter config bar — shown inline for formatter tools */}
                         {(() => {
                             const ws = workspaceTabs.find(t => t.id === activeWorkspaceId)
@@ -1452,6 +1507,31 @@ export default function TextForm(props) {
                             return fmtToolId ? (
                                 <FmtConfigBar toolId={fmtToolId} fmtCfg={formatter.fmtCfg} setFmtCfg={formatter.setFmtCfg} />
                             ) : null
+                        })()}
+                        {/* Select tool options bar (Format, Tone, Translate, Translit) */}
+                        {(() => {
+                            const ws = workspaceTabs.find(t => t.id === activeWorkspaceId)
+                            if (ws?.type !== 'tool' || ws.tool.type !== 'select') return null
+                            const tool = ws.tool
+                            const currentVal = ai[tool.selectKey] || tool.options?.[0]?.[0]
+                            return (
+                                <div className="tu-fmtbar">
+                                    <span className="tu-fmtbar-lang">{tool.label}</span>
+                                    <span className="tu-fmtbar-sep" />
+                                    {tool.options.map(([val, label]) => (
+                                        <button
+                                            key={val}
+                                            className={`tu-fmtbar-opt${currentVal === val ? ' tu-fmtbar-opt--on' : ''}`}
+                                            onClick={() => {
+                                                if (ai[tool.setterKey]) ai[tool.setterKey](val)
+                                                setTimeout(() => executeToolAction(tool), 100)
+                                            }}
+                                        >
+                                            {label}
+                                        </button>
+                                    ))}
+                                </div>
+                            )
                         })()}
                         <div className="tu-editor-body">
                             <div className="tu-line-numbers" ref={gutterRef}>
@@ -1480,6 +1560,14 @@ export default function TextForm(props) {
                                 <span>Processing...</span>
                             </div>
                         )}
+                        {/* Smart Suggestions — below input */}
+                        {suggestions.suggestions.length > 0 && (
+                            <SmartSuggestions
+                                suggestions={suggestions.suggestions}
+                                onToolClick={handleToolClick}
+                                onDismiss={suggestions.dismiss}
+                            />
+                        )}
                         {/* Compare With input (shown below main input when compare tool is active) */}
                         {workspaceTabs.find(t => t.id === activeWorkspaceId)?.panelId === 'compare' && (
                             <CompareInput
@@ -1488,6 +1576,7 @@ export default function TextForm(props) {
                                 setDiffResult={compare.setDiffResult}
                             />
                         )}
+                        </>)}
                     </div>
 
                     {/* Split resize handle */}
@@ -1502,33 +1591,52 @@ export default function TextForm(props) {
                                 if (ws.panelId === 'compare') {
                                     return <CompareOutput diffResult={compare.diffResult} compareText={compare.compareText} />
                                 }
-                                return DRAWERS[ws.panelId] ? (
-                                    <DrawerPanel
-                                        title={DRAWERS[ws.panelId].title}
-                                        color={DRAWERS[ws.panelId].color}
-                                        onClose={() => closeWorkspaceTab(activeWorkspaceId)}
-                                    >
-                                        {renderDrawerContent()}
-                                    </DrawerPanel>
-                                ) : null
+                                // These render inline in input area — fall through to OutputPanel
+                                if (['find', 'password', 'randtext'].includes(ws.panelId)) {
+                                    // fall through to OutputPanel below
+                                } else {
+                                    return DRAWERS[ws.panelId] ? (
+                                        <DrawerPanel
+                                            title={DRAWERS[ws.panelId].title}
+                                            color={DRAWERS[ws.panelId].color}
+                                            onClose={() => closeWorkspaceTab(activeWorkspaceId)}
+                                        >
+                                            {renderDrawerContent()}
+                                        </DrawerPanel>
+                                    ) : null
+                                }
                             }
                             const toolResult = ws?.type === 'tool' ? toolResults[ws.tool.id] : null
-                            const displayResult = text ? (toolResult || ai.aiResult) : null
+                            const isNoInputDrawer = ['password', 'randtext'].includes(ws?.panelId)
+                            // Tool tabs: own stored result. No-input drawers: always show aiResult. Others: require text.
+                            const displayResult = ws?.type === 'tool'
+                                ? toolResult
+                                : isNoInputDrawer
+                                    ? ai.aiResult
+                                    : (text ? ai.aiResult : null)
                             return (
                                 <OutputPanel
                                     aiResult={displayResult || null}
                                     hasMarkdown={ai.hasMarkdown}
                                     onAiAccept={() => {
-                                        const r = toolResult || ai.aiResult
+                                        const r = displayResult
                                         if (r) {
-                                            setText(r.result)
-                                            if (ai.hasMarkdown(r.result)) setMarkdownMode(true)
+                                            if (isNoInputDrawer) {
+                                                // No textarea — copy to clipboard instead
+                                                navigator.clipboard.writeText(r.result)
+                                                showAlert('Copied to clipboard!', 'success')
+                                            } else {
+                                                setText(r.result)
+                                                if (ai.hasMarkdown(r.result)) setMarkdownMode(true)
+                                            }
                                         }
                                         if (ws?.type === 'tool') {
                                             setToolResults(prev => { const next = { ...prev }; delete next[ws.tool.id]; return next })
                                         }
-                                        ai.setAiResult(null)
-                                        setPreviewMode(null)
+                                        if (!isNoInputDrawer) {
+                                            ai.setAiResult(null)
+                                            setPreviewMode(null)
+                                        }
                                     }}
                                     onAiDismiss={() => {
                                         if (ws?.type === 'tool') {
@@ -1563,14 +1671,7 @@ export default function TextForm(props) {
                     style={{ height: bottomResize.size }}
                 />
 
-                {/* Smart Suggestions — status bar style */}
-                {suggestions.suggestions.length > 0 && (
-                    <SmartSuggestions
-                        suggestions={suggestions.suggestions}
-                        onToolClick={handleToolClick}
-                        onDismiss={suggestions.dismiss}
-                    />
-                )}</>}
+                </>}
             </div>
         </div>
 
@@ -1709,7 +1810,7 @@ export default function TextForm(props) {
             return <SaveModal />
         })()}
 
-        <AchievementToast achievement={gamification.newAchievement} />
+        <AchievementToast achievement={gamification.newAchievement} onDismiss={gamification.dismissAchievement} />
         <CommandPalette search={search} onToolClick={handleToolClick} />
         <KeyboardShortcuts
             isOpen={shortcutsOpen}

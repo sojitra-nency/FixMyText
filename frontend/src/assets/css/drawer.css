@@ -270,6 +270,23 @@
   background: rgba(0, 122, 204, 0.08);
 }
 
+/* Password output inline */
+.tu-fmtbar-pwd code {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--emerald);
+  background: rgba(78, 201, 176, 0.1);
+  padding: 2px 8px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: background var(--t);
+  word-break: break-all;
+}
+.tu-fmtbar-pwd code:hover {
+  background: rgba(78, 201, 176, 0.2);
+}
+
 /* ── Find & Replace panel ───────────────────────────── */
 .tu-find-panel {
   margin-top: 8px;
@@ -295,6 +312,145 @@
   font-size: 0.7rem;
   color: var(--text-2);
 }
+/* ── Find & Replace (VSCode widget style) ──────────── */
+.tu-fr {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  flex-shrink: 0;
+}
+
+.tu-fr-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tu-fr-field {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.tu-fr-input {
+  width: 100%;
+  padding: 5px 8px;
+  padding-right: 70px;
+  border-radius: 3px;
+  border: 1px solid var(--input-border);
+  background: var(--input-bg);
+  color: var(--input-fg);
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  box-sizing: border-box;
+  transition: border-color var(--t);
+}
+.tu-fr-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-glow);
+}
+.tu-fr-input::placeholder {
+  color: var(--text-3);
+  opacity: 0.6;
+}
+
+/* Live match count badge inside search field */
+.tu-fr-badge {
+  position: absolute;
+  right: 6px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--text-3);
+  background: var(--surface-2);
+  padding: 1px 6px;
+  border-radius: var(--r-pill);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.tu-fr-badge--none {
+  color: var(--rose);
+  background: rgba(244, 71, 71, 0.1);
+}
+
+/* Toggle buttons for case-sensitive / regex */
+.tu-fr-toggles {
+  display: flex;
+  gap: 2px;
+}
+
+.tu-fr-toggle {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: all var(--t);
+}
+.tu-fr-toggle:hover {
+  background: var(--list-hover);
+  color: var(--text);
+}
+.tu-fr-toggle--active {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Replace action button */
+.tu-fr-actions {
+  display: flex;
+  gap: 2px;
+}
+
+.tu-fr-action {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: all var(--t);
+}
+.tu-fr-action:hover:not(:disabled) {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.tu-fr-action:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Status bar after replace */
+.tu-fr-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--emerald);
+  padding: 3px 8px;
+  background: rgba(78, 201, 176, 0.08);
+  border-radius: 3px;
+  margin-top: 2px;
+}
+
+/* Legacy classes kept for other drawers that still use them */
 .tu-find-inputs {
   display: flex;
   flex-direction: column;

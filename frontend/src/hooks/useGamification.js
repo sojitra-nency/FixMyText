@@ -250,7 +250,7 @@ export default function useGamification() {
 
       if (newUnlock) {
         setTimeout(() => setNewAchievement(newUnlock), 300)
-        setTimeout(() => setNewAchievement(null), 4000)
+        setTimeout(() => setNewAchievement(null), 6000)
       }
 
       return {
@@ -303,6 +303,7 @@ export default function useGamification() {
     nextLevel,
     xpProgress,
     newAchievement,
+    dismissAchievement: () => setNewAchievement(null),
     xpGain,
     onboarded: !!state.persona,
     recordToolUse,

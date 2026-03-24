@@ -32,6 +32,7 @@ export default function useGenerators(setText, showAlert) {
         }
         setText(result)
         showAlert('Random text generated', 'success')
+        return result
     }
 
     const handleGeneratePassword = () => {
@@ -44,8 +45,10 @@ export default function useGenerators(setText, showAlert) {
         const chars = pools.join('')
         const arr = new Uint32Array(pwdLen)
         crypto.getRandomValues(arr)
-        setGeneratedPwd(Array.from(arr).map(x => chars[x % chars.length]).join(''))
+        const pwd = Array.from(arr).map(x => chars[x % chars.length]).join('')
+        setGeneratedPwd(pwd)
         showAlert('Password generated', 'success')
+        return pwd
     }
 
     return {

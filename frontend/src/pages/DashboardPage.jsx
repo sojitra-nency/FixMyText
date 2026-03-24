@@ -74,12 +74,12 @@ export default function DashboardPage({ gamification, user, isAuthenticated, sho
             const tool = TOOLS.find(t => t.id === id)
             if (tool?.tabs) {
                 tool.tabs.forEach(tab => {
-                    if (tab !== 'popular') cats[tab] = (cats[tab] || 0) + count
+                    if (tab !== 'all') cats[tab] = (cats[tab] || 0) + count
                 })
             }
         })
         return USE_CASE_TABS
-            .filter(t => t.id !== 'popular' && cats[t.id])
+            .filter(t => t.id !== 'all' && cats[t.id])
             .map(t => ({ ...t, count: cats[t.id] || 0 }))
             .sort((a, b) => b.count - a.count)
     }, [g?.toolsUsed])
