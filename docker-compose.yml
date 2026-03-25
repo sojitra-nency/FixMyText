@@ -19,7 +19,7 @@ services:
     container_name: fixmytext-db
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "${DB_HOST_PORT:-5433}:5432"
     environment:
       POSTGRES_USER: fixmytext
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fixmytext_dev}
@@ -34,6 +34,51 @@ services:
       timeout: 3s
       retries: 5
       start_period: 10s
+
+
+  # ══════════════════════════════════════════════════════════════════════════
+  # MIGRATE  —  runs alembic upgrade head once, then exits (shared logic)
+  # Each profile has its own migrate service so build context matches.
+  # Both backend services depend on their migrate service completing.
+  # ══════════════════════════════════════════════════════════════════════════
+
+  migrate-dev:
+    profiles: ["dev"]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: fixmytext-migrate-dev
+    restart: "no"
+    command: ["alembic", "upgrade", "head"]
+    env_file:
+      - ./backend/.env
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://fixmytext:${POSTGRES_PASSWORD:-fixmytext_dev}@db-service:5432/fixmytext
+    depends_on:
+      db-service:
+        condition: service_healthy
+    networks:
+      - fixmytext-net
+
+  migrate-prod:
+    profiles: ["prod"]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: fixmytext-migrate-prod
+    restart: "no"
+    command: ["alembic", "upgrade", "head"]
+    env_file:
+      - ./backend/.env
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://fixmytext:${POSTGRES_PASSWORD:-fixmytext_dev}@db-service:5432/fixmytext
+      - SECRET_KEY=${SECRET_KEY:-}
+    depends_on:
+      db-service:
+        condition: service_healthy
+    networks:
+      - fixmytext-net
 
 
   # ══════════════════════════════════════════════════════════════════════════
@@ -62,6 +107,8 @@ services:
     depends_on:
       db-service:
         condition: service_healthy
+      migrate-dev:
+        condition: service_completed_successfully
     networks:
       - fixmytext-net
 
@@ -111,11 +158,13 @@ services:
     depends_on:
       db-service:
         condition: service_healthy
+      migrate-prod:
+        condition: service_completed_successfully
     networks:
       - fixmytext-net
     healthcheck:
       test: ["CMD", "python", "-c",
-             "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+            "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
       interval: 30s
       timeout: 5s
       retries: 3

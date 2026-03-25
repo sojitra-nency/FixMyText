@@ -27,13 +27,14 @@ export function useTheme() {
     const { data: prefs } = useGetPreferencesQuery(undefined, { skip: !isAuthenticated });
     const [updatePrefs] = useUpdatePreferencesMutation();
 
-    // Hydrate from DB on first fetch
+    // Hydrate from DB on first fetch — DB is authoritative for authenticated users
     useEffect(() => {
         if (prefs && !hydrated.current) {
             hydrated.current = true;
             if (prefs.theme && prefs.theme !== mode) {
                 setModeState(prefs.theme);
                 applyMode(prefs.theme);
+                // Keep localStorage as offline cache only
                 localStorage.setItem(MODE_KEY, prefs.theme);
             }
         }
@@ -47,9 +48,13 @@ export function useTheme() {
     const setMode = useCallback((newMode) => {
         setModeState(newMode);
         applyMode(newMode);
-        localStorage.setItem(MODE_KEY, newMode);
         if (isAuthenticated) {
+            // Authenticated: DB is source of truth; keep localStorage as offline cache
+            localStorage.setItem(MODE_KEY, newMode);
             updatePrefs({ theme: newMode }).unwrap().catch(() => {});
+        } else {
+            // Unauthenticated: localStorage is the only storage
+            localStorage.setItem(MODE_KEY, newMode);
         }
     }, [isAuthenticated, updatePrefs]);
 
