@@ -173,24 +173,13 @@
   color: #fff;
 }
 
-/* ── Nav Persona Badge ────────────────────────────── */
-.tu-nav-persona {
-  font-size: 0.85rem;
-  cursor: default;
-}
-
 /* ── Responsive ───────────────────────────────────── */
 .d-none { display: none !important; }
 .d-md-flex { display: none !important; }
-.d-lg-block { display: none !important; }
 
 @media (min-width: 768px) {
   .d-md-flex { display: flex !important; }
   .d-md-none { display: none !important; }
-}
-
-@media (min-width: 1024px) {
-  .d-lg-block { display: block !important; }
 }
 
 /* ── Mobile menu ─────────────────────────────────── */

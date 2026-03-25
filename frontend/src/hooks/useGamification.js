@@ -42,7 +42,6 @@ function getLevel(xp) {
 function apiToState(api) {
   return {
     persona: null, // persona is in preferences, not gamification
-    themeSkin: null,
     toolsUsed: api.tools_used || {},
     discoveredTools: api.discovered_tools || [],
     totalOps: api.total_ops || 0,
@@ -83,7 +82,6 @@ function stateToApi(s) {
 
 const DEFAULT_STATE = {
   persona: null,
-  themeSkin: null,
   toolsUsed: {},
   discoveredTools: [],
   totalOps: 0,
@@ -126,10 +124,9 @@ export default function useGamification() {
       const dbState = apiToState(dbGamification)
       setState(prev => {
         const merged = { ...prev, ...dbState, sessionOps: prev.sessionOps }
-        // Persona/themeSkin come from preferences endpoint
+        // Persona comes from preferences endpoint
         if (dbPrefs) {
           merged.persona = dbPrefs.persona || prev.persona
-          merged.themeSkin = dbPrefs.theme_skin || prev.themeSkin
         }
         return merged
       })
@@ -277,20 +274,6 @@ export default function useGamification() {
     }
   }, [isAuthenticated, syncPrefs])
 
-  const setThemeSkin = useCallback((themeSkin) => {
-    setState(prev => ({ ...prev, themeSkin }))
-    if (isAuthenticated) {
-      syncPrefs({ theme_skin: themeSkin }).unwrap().catch(() => {})
-    }
-  }, [isAuthenticated, syncPrefs])
-
-  const savePipeline = useCallback((pipeline) => {
-    setState(prev => ({
-      ...prev,
-      savedPipelines: [...prev.savedPipelines, pipeline],
-    }))
-  }, [])
-
   const level = getLevel(state.xp)
   const nextLevel = LEVELS.find(l => l.xp > state.xp) || level
   const xpProgress = nextLevel.xp > level.xp
@@ -309,7 +292,5 @@ export default function useGamification() {
     recordToolUse,
     toggleFavorite,
     setPersona,
-    setThemeSkin,
-    savePipeline,
   }
 }

@@ -249,12 +249,10 @@ export const QUEST_TEMPLATES = [
   { id: 'pipeline_10',        text: 'Use 10 tools in a single session',        xp: 100, check: (ops) => ops.length >= 10 },
   { id: 'speed_burst',        text: 'Use 3 tools within 60 seconds',           xp: 60, check: (ops) => { if (ops.length < 3) return false; const r = ops.slice(-3); return (r[2].time - r[0].time) < 60000 } },
   // Specific tool quests
-  { id: 'use_word_freq',      text: 'Analyze your text with Word Frequency',   xp: 40, check: (ops) => ops.some(o => o.id === 'word_frequency') },
-  { id: 'use_title_gen',      text: 'Generate a title for your text',          xp: 40, check: (ops) => ops.some(o => o.id === 'title_generator') },
-  { id: 'use_json_format',    text: 'Format some JSON or code',                xp: 40, check: (ops) => ops.some(o => o.id === 'json_format' || o.id === 'format_code') },
-  { id: 'use_markdown',       text: 'Convert text to Markdown',                xp: 40, check: (ops) => ops.some(o => o.id === 'markdown') },
-  { id: 'use_slug',           text: 'Generate a URL slug from text',           xp: 40, check: (ops) => ops.some(o => o.id === 'slug') },
-  { id: 'use_lorem',          text: 'Generate some Lorem Ipsum text',          xp: 30, check: (ops) => ops.some(o => o.id === 'lorem_ipsum') },
+  { id: 'use_word_freq',      text: 'Analyze your text with Word Frequency',   xp: 40, check: (ops) => ops.some(o => o.id === 'word_freq') },
+  { id: 'use_title_gen',      text: 'Generate a title for your text',          xp: 40, check: (ops) => ops.some(o => o.id === 'gen_title') },
+  { id: 'use_json_format',    text: 'Format some JSON or code',                xp: 40, check: (ops) => ops.some(o => o.id === 'json_fmt' || o.id === 'js_fmt' || o.id === 'css_fmt' || o.id === 'html_fmt' || o.id === 'ts_fmt') },
+  { id: 'use_lorem',          text: 'Generate some Lorem Ipsum text',          xp: 30, check: (ops) => ops.some(o => o.id === 'random_text') },
   { id: 'use_reverse',        text: 'Reverse your text for fun',               xp: 30, check: (ops) => ops.some(o => o.id === 'reverse') },
 ]
 

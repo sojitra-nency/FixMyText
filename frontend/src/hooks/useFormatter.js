@@ -92,7 +92,6 @@ export default function useFormatter(text, setLoading, showAlert, onResult) {
 
     return {
         fmtCfg, setFmtCfg,
-        defaultFmtCfg,
         handleFormatHtml, handleFormatCss, handleFormatJs, handleFormatTs,
     }
 }

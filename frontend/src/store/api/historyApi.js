@@ -4,7 +4,7 @@ import { baseQueryWithReauth } from './baseQuery'
 export const historyApi = createApi({
   reducerPath: 'historyApi',
   baseQuery: baseQueryWithReauth,
-  tagTypes: ['History', 'HistoryStats'],
+  tagTypes: ['History'],
   endpoints: (builder) => ({
     // Paginated list
     getHistory: builder.query({
@@ -19,40 +19,27 @@ export const historyApi = createApi({
     // Record new operation
     recordOperation: builder.mutation({
       query: (body) => ({ url: '/api/v1/history', method: 'POST', body }),
-      invalidatesTags: ['History', 'HistoryStats'],
-    }),
-
-    // Get single entry
-    getHistoryEntry: builder.query({
-      query: (id) => `/api/v1/history/${id}`,
-      providesTags: (result, error, id) => [{ type: 'History', id }],
+      invalidatesTags: ['History'],
     }),
 
     // Delete single entry
     deleteHistoryEntry: builder.mutation({
       query: (id) => ({ url: `/api/v1/history/${id}`, method: 'DELETE' }),
-      invalidatesTags: ['History', 'HistoryStats'],
+      invalidatesTags: ['History'],
     }),
 
     // Clear all history
     clearHistory: builder.mutation({
       query: () => ({ url: '/api/v1/history', method: 'DELETE' }),
-      invalidatesTags: ['History', 'HistoryStats'],
+      invalidatesTags: ['History'],
     }),
 
-    // Stats summary
-    getHistoryStats: builder.query({
-      query: () => '/api/v1/history/stats/summary',
-      providesTags: ['HistoryStats'],
-    }),
   }),
 })
 
 export const {
   useGetHistoryQuery,
   useRecordOperationMutation,
-  useGetHistoryEntryQuery,
   useDeleteHistoryEntryMutation,
   useClearHistoryMutation,
-  useGetHistoryStatsQuery,
 } = historyApi

@@ -29,7 +29,6 @@ import useKeyboardShortcuts from '../../hooks/useKeyboardShortcuts'
 
 // Components
 import ToolPanel from './ToolPanel'
-import ToolView from './ToolView'
 import ToolIcon from './ToolIcon'
 import OutputPanel from './OutputPanel'
 import DrawerPanel from '../drawers/DrawerPanel'
@@ -282,15 +281,6 @@ export default function TextForm(props) {
         finally { setLocalLoading(false) }
     }
 
-    // ── Text Tools ──────────────────────────────────────────
-    const handleReverseText      = () => callApi(ENDPOINTS.REVERSE,                'Text reversed')
-    const handleSortAsc          = () => callApi(ENDPOINTS.SORT_LINES_ASC,         'Lines sorted A → Z')
-    const handleSortDesc         = () => callApi(ENDPOINTS.SORT_LINES_DESC,        'Lines sorted Z → A')
-    const handleRemoveDuplicates = () => callApi(ENDPOINTS.REMOVE_DUPLICATE_LINES, 'Duplicate lines removed')
-    const handleReverseLines     = () => callApi(ENDPOINTS.REVERSE_LINES,          'Lines reversed')
-    const handleNumberLines      = () => callApi(ENDPOINTS.NUMBER_LINES,           'Lines numbered')
-    const handleRot13            = () => callApi(ENDPOINTS.ROT13,                  'ROT13 applied')
-
     // ── Escape / Unescape ───────────────────────────────────
     const handleJsonEscape   = () => callApi(ENDPOINTS.JSON_ESCAPE,   'JSON escaped')
     const handleJsonUnescape = () => callApi(ENDPOINTS.JSON_UNESCAPE, 'JSON unescaped')
@@ -423,7 +413,7 @@ export default function TextForm(props) {
         setPreviewMode(null)
     }, [toolTexts])
 
-    // ── Execute a tool (called from ToolView's Run button) ──
+    // ── Execute a tool ──
     const executeToolAction = useCallback((tool) => {
         if (!tool) return
         if (!trial.checkTrial()) return

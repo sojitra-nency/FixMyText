@@ -124,24 +124,6 @@
   color: var(--text);
 }
 
-/* Case */
-.tu-btn--case {
-  background: var(--button-bg);
-  color: var(--button-fg);
-}
-
-/* Whitespace */
-.tu-btn--space {
-  background: var(--button-bg);
-  color: var(--button-fg);
-}
-
-/* Clipboard */
-.tu-btn--clip {
-  background: var(--button-bg);
-  color: var(--button-fg);
-}
-
 /* Danger */
 .tu-btn--danger {
   background: rgba(244, 71, 71, 0.15);
@@ -152,84 +134,6 @@
   background: var(--rose);
   color: white;
 }
-
-/* Amber */
-.tu-btn--amber {
-  background: var(--button-bg);
-  color: var(--button-fg);
-}
-
-/* Analyze */
-.tu-btn--analyze {
-  background: var(--button-bg);
-  color: var(--button-fg);
-}
-
-/* Export */
-.tu-btn--export {
-  background: var(--button-bg);
-  color: var(--button-fg);
-}
-
-/* Speech to Text */
-.tu-btn--stt {
-  background: var(--button-bg);
-  color: var(--button-fg);
-}
-
-/* Listening mode */
-.tu-btn--listening {
-  background: rgba(244, 71, 71, 0.15);
-  border: 1px solid rgba(244, 71, 71, 0.4);
-  color: var(--rose);
-  animation: tu-pulse-border 1s ease-in-out infinite;
-}
-@keyframes tu-pulse-border {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(244, 71, 71, 0.3); }
-  50%       { box-shadow: 0 0 0 4px rgba(244, 71, 71, 0); }
-}
-
-/* Dyslexia toggle */
-.tu-btn--dyslexia { background: var(--button-bg); color: var(--button-fg); }
-.tu-btn--dyslexia-on {
-  background: var(--accent);
-  color: white;
-}
-
-/* Encoding */
-.tu-btn--encode { background: var(--button-bg); color: var(--button-fg); }
-
-/* Developer */
-.tu-btn--dev { background: var(--button-bg); color: var(--button-fg); }
-.tu-btn--dev-active {
-  background: var(--accent);
-  color: white;
-}
-
-/* AI panel action buttons */
-.tu-btn--ai-accept {
-  background: #388A34;
-  color: white;
-  border: none;
-  padding: 3px 10px;
-  border-radius: 3px;
-  font-size: 0.72rem;
-  font-weight: 500;
-  cursor: pointer;
-}
-.tu-btn--ai-accept:hover { background: #43A03E; }
-
-.tu-btn--ai-copy {
-  background: var(--button-bg);
-  color: var(--button-fg);
-  border: none;
-  padding: 3px 10px;
-  border-radius: 3px;
-  font-size: 0.72rem;
-  font-weight: 500;
-  cursor: pointer;
-}
-.tu-btn--ai-copy:hover { background: var(--button-hover); }
 
 .tu-btn--ai-dismiss {
   background: transparent;
@@ -242,21 +146,8 @@
 }
 .tu-btn--ai-dismiss:hover { border-color: var(--rose); color: var(--rose); }
 
-/* Apply */
-.tu-btn--apply {
-  background: var(--button-bg);
-  color: var(--button-fg);
-}
-
 /* Tools */
 .tu-btn--tools { background: var(--button-bg); color: var(--button-fg); }
-.tu-btn--tools-active { background: var(--accent); color: white; }
-
-/* Compare */
-.tu-btn--compare { background: var(--button-bg); color: var(--button-fg); }
-
-/* Generator */
-.tu-btn--gen { background: var(--button-bg); color: var(--button-fg); }
 
 /* Markdown toggle */
 .tu-btn--preview-toggle {
@@ -283,7 +174,3 @@
   background: var(--button-hover);
 }
 
-/* Tone buttons */
-.tu-btn--tone-formal { background: var(--button-bg); color: var(--button-fg); }
-.tu-btn--tone-casual { background: var(--button-bg); color: var(--button-fg); }
-.tu-btn--tone-friendly { background: var(--button-bg); color: var(--button-fg); }

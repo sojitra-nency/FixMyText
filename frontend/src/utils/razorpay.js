@@ -30,35 +30,6 @@ export function openRazorpayCheckout({ orderId, amount, currency, keyId, userEma
 }
 
 /**
- * Opens the Razorpay checkout modal for subscriptions (Pro).
- */
-export function openRazorpaySubscription({ subscriptionId, keyId, userEmail, userName, onSuccess, onFailure }) {
-  if (!window.Razorpay) {
-    onFailure?.('Payment service unavailable. Please refresh the page.')
-    return
-  }
-  const options = {
-    key: keyId,
-    subscription_id: subscriptionId,
-    name: 'FixMyText',
-    description: 'Pro — Unlimited Access',
-    prefill: { email: userEmail, name: userName },
-    theme: { color: '#007ACC' },
-    handler(response) {
-      // response = { razorpay_payment_id, razorpay_subscription_id, razorpay_signature }
-      onSuccess(response)
-    },
-    modal: {
-      ondismiss() {
-        onFailure?.('Subscription cancelled')
-      },
-    },
-  }
-  const rzp = new window.Razorpay(options)
-  rzp.open()
-}
-
-/**
  * Shared checkout flow: create order -> open Razorpay -> verify -> navigate.
  * Reduces duplication across pass, credit, and subscription purchase hooks.
  */

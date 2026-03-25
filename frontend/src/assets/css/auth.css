@@ -162,37 +162,3 @@
   text-decoration: underline;
 }
 
-/* ── Navbar Auth ────────────────────────────────────── */
-.tu-nav-auth {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.tu-nav-user {
-  font-size: 0.72rem;
-  font-weight: 500;
-  color: var(--text-2);
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tu-nav-auth-btn {
-  padding: 2px 8px;
-  border-radius: 3px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--text-2);
-  font-size: 0.72rem;
-  font-weight: 500;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all var(--t);
-}
-
-.tu-nav-auth-btn:hover {
-  background: rgba(255,255,255,0.06);
-  color: var(--text);
-}

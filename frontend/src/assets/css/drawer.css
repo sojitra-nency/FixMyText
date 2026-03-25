@@ -41,78 +41,7 @@
   background: var(--surface);
 }
 
-/* ── Formatter config panel ─────────────────────────── */
-.tu-fmt-cfg {
-  margin-top: 8px;
-  padding: 0;
-  background: var(--surface);
-  border: 1px solid var(--accent);
-  border-radius: var(--r-md);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.tu-fmt-cfg-header {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 10px 14px 8px;
-  background: rgba(0, 122, 204, 0.06);
-  border-bottom: 1px solid var(--border);
-}
-.tu-fmt-cfg-title {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--accent);
-}
-.tu-fmt-cfg-desc {
-  font-size: 0.7rem;
-  color: var(--text-2);
-}
-
-.tu-fmt-section-label {
-  font-size: 0.6rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-2);
-  padding: 8px 14px 2px;
-}
-
-.tu-fmt-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 16px;
-  align-items: center;
-  padding: 0 14px 8px;
-}
-.tu-fmt-field {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.78rem;
-  color: var(--text-2);
-  white-space: nowrap;
-}
-.tu-fmt-field span { font-weight: 500; color: var(--text); }
-.tu-fmt-field select {
-  font-size: 0.78rem;
-  padding: 2px 8px;
-  border-radius: 3px;
-  border: 1px solid var(--input-border);
-  background: var(--input-bg);
-  color: var(--input-fg);
-  cursor: pointer;
-}
-.tu-fmt-field select:focus { outline: none; border-color: var(--accent); }
-
-.tu-fmt-checks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-  padding: 0 14px 8px;
-}
+/* ── Checkbox style (used by RegexDrawer flags) ──────── */
 .tu-fmt-check {
   display: flex;
   align-items: center;
@@ -123,31 +52,6 @@
   white-space: nowrap;
 }
 .tu-fmt-check input[type="checkbox"] { accent-color: var(--accent); cursor: pointer; }
-
-.tu-fmt-presets {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  border-top: 1px solid var(--border);
-  flex-wrap: wrap;
-}
-.tu-fmt-preset-label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--text-2);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-right: 4px;
-}
-
-.tu-fmt-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 6px;
-  padding: 8px 14px;
-  border-top: 1px solid var(--border);
-}
 
 /* ── Inline Formatter Config Bar ────────────────────── */
 .tu-fmtbar {
@@ -270,48 +174,6 @@
   background: rgba(0, 122, 204, 0.08);
 }
 
-/* Password output inline */
-.tu-fmtbar-pwd code {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--emerald);
-  background: rgba(78, 201, 176, 0.1);
-  padding: 2px 8px;
-  border-radius: var(--r-sm);
-  cursor: pointer;
-  transition: background var(--t);
-  word-break: break-all;
-}
-.tu-fmtbar-pwd code:hover {
-  background: rgba(78, 201, 176, 0.2);
-}
-
-/* ── Find & Replace panel ───────────────────────────── */
-.tu-find-panel {
-  margin-top: 8px;
-  border: 1px solid var(--accent);
-  border-radius: var(--r-md);
-  overflow: hidden;
-  background: var(--surface);
-}
-.tu-find-panel-header {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 10px 14px 8px;
-  background: rgba(0, 122, 204, 0.06);
-  border-bottom: 1px solid var(--border);
-}
-.tu-find-panel-title {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--accent);
-}
-.tu-find-panel-desc {
-  font-size: 0.7rem;
-  color: var(--text-2);
-}
 /* ── Find & Replace (VSCode widget style) ──────────── */
 .tu-fr {
   display: flex;
@@ -723,41 +585,3 @@
   border-right: 2px solid var(--border);
 }
 
-/* ── Generators ─────────────────────────────────────── */
-.tu-gen-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.tu-gen-row--wrap { flex-wrap: wrap; }
-.tu-gen-number {
-  width: 5rem;
-  padding: 3px 8px;
-  border-radius: 3px;
-  border: 1px solid var(--input-border);
-  background: var(--input-bg);
-  color: var(--input-fg);
-  font-size: 0.78rem;
-  text-align: center;
-}
-.tu-gen-number:focus { outline: none; border-color: var(--accent); }
-.tu-pwd-output {
-  margin-top: 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--r-md);
-  flex-wrap: wrap;
-}
-.tu-pwd-value {
-  flex: 1;
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  color: var(--text);
-  word-break: break-all;
-  letter-spacing: 0.03em;
-}
