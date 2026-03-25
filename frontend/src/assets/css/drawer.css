@@ -87,6 +87,42 @@
   flex-shrink: 0;
 }
 
+/* Auto-detect toggle for translate */
+.tu-fmtbar-detect {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6rem;
+  font-weight: 500;
+  font-family: var(--font-display);
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: all var(--t);
+  white-space: nowrap;
+}
+.tu-fmtbar-detect:hover {
+  border-color: var(--accent);
+  color: var(--text-2);
+}
+.tu-fmtbar-detect--on {
+  background: var(--accent-glow);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.tu-fmtbar-detected {
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--r-pill);
+  background: rgba(78, 201, 176, 0.15);
+  color: var(--emerald);
+  white-space: nowrap;
+}
+
 /* Label + select pair */
 .tu-fmtbar-field {
   display: inline-flex;

@@ -44,7 +44,6 @@ import BottomPanel from './BottomPanel'
 import CommandPalette from '../layout/CommandPalette'
 import KeyboardShortcuts from '../layout/KeyboardShortcuts'
 import AchievementToast from '../gamification/AchievementToast'
-import FormatToolbar from './FormatToolbar'
 
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -478,6 +477,7 @@ export default function TextForm(props) {
         handleSentiment:        ai.handleSentiment,
         handleGenerateTitle:    ai.handleGenerateTitle,
         handleRefactorPrompt:   ai.handleRefactorPrompt,
+        handleEmojify:          ai.handleEmojify,
         handleChangeFormat:     ai.handleChangeFormat,
         handleChangeTone:       ai.handleChangeTone,
         handleTranslate:        ai.handleTranslate,
@@ -1648,6 +1648,26 @@ export default function TextForm(props) {
                             return (
                                 <div className="tu-fmtbar">
                                     <span className="tu-fmtbar-lang">{tool.label}</span>
+                                    {tool.id === 'translate' && (
+                                        <>
+                                            <button
+                                                className={`tu-fmtbar-detect${ai.autoDetectLang ? ' tu-fmtbar-detect--on' : ''}`}
+                                                onClick={() => {
+                                                    const next = !ai.autoDetectLang
+                                                    ai.setAutoDetectLang(next)
+                                                    if (next && text) ai.handleDetectLanguage()
+                                                    else ai.setDetectedLang(null)
+                                                }}
+                                                title="Auto-detect input language"
+                                            >
+                                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                                Auto-detect
+                                            </button>
+                                            {ai.autoDetectLang && ai.detectedLang && (
+                                                <span className="tu-fmtbar-detected">{ai.detectedLang}</span>
+                                            )}
+                                        </>
+                                    )}
                                     <span className="tu-fmtbar-sep" />
                                     {tool.options.map(([val, label]) => (
                                         <button
@@ -1684,17 +1704,6 @@ export default function TextForm(props) {
                                 }}
                                 placeholder="// Start typing or paste your text here..."
                                 style={{ tabSize: formatter.fmtCfg.tabWidth, MozTabSize: formatter.fmtCfg.tabWidth }}
-                            />
-                            <FormatToolbar
-                                textareaRef={textareaRef}
-                                text={text}
-                                setText={setText}
-                                enabled={(() => {
-                                    const ws = workspaceTabs.find(t => t.id === activeWorkspaceId)
-                                    if (!ws || ws.type !== 'tool') return false
-                                    const g = ws.tool.group
-                                    return ['ai_writing', 'ai_content', 'language', 'whitespace', 'case', 'lines'].includes(g)
-                                })()}
                             />
                         </div>
                         {loading && (

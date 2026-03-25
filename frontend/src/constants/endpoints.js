@@ -64,6 +64,8 @@ export const ENDPOINTS = {
   EXTRACT_KEYWORDS: '/api/v1/text/extract-keywords',
   TRANSLATE: '/api/v1/text/translate',
   TRANSLITERATE: '/api/v1/text/transliterate',
+  EMOJIFY: '/api/v1/text/emojify',
+  DETECT_LANGUAGE: '/api/v1/text/detect-language',
   SUMMARIZE: '/api/v1/text/summarize',
   FIX_GRAMMAR: '/api/v1/text/fix-grammar',
   PARAPHRASE: '/api/v1/text/paraphrase',

@@ -10,6 +10,8 @@ export default function useAiTools(text, setText, setMarkdownMode, setPreviewMod
     const [formatSetting, setFormatSetting] = useState('paragraph')
     const [translateLang, setTranslateLang] = useState('Spanish')
     const [translitLang, setTranslitLang] = useState('Hindi')
+    const [autoDetectLang, setAutoDetectLang] = useState(false)
+    const [detectedLang, setDetectedLang] = useState(null)
 
     const [transformText] = useTransformTextMutation()
 
@@ -53,6 +55,7 @@ export default function useAiTools(text, setText, setMarkdownMode, setPreviewMod
     const handleProofread        = () => callAi(ENDPOINTS.PROOFREAD,                  'Proofread',         'Could not proofread text. Please try again.')
     const handleGenerateTitle    = () => callAi(ENDPOINTS.GENERATE_TITLE,             'Titles',            'Could not generate titles. Please try again.')
     const handleRefactorPrompt   = () => callAi(ENDPOINTS.REFACTOR_PROMPT,            'Prompt Refactored', 'Could not refactor prompt. Please try again.')
+    const handleEmojify          = () => callAi(ENDPOINTS.EMOJIFY,                   'Emojify',           'Could not add emojis. Please try again.', 'emojify')
 
     const handleChangeFormat = async () => {
         if (!text) return
@@ -84,10 +87,27 @@ export default function useAiTools(text, setText, setMarkdownMode, setPreviewMod
         }
     }
 
+    const handleDetectLanguage = async () => {
+        if (!text) return
+        try {
+            const data = await transformText({ endpoint: ENDPOINTS.DETECT_LANGUAGE, text }).unwrap()
+            setDetectedLang(data.result)
+            return data.result
+        } catch {
+            setDetectedLang(null)
+            return null
+        }
+    }
+
     const handleTranslate = async () => {
         if (!text) return
         const original = text
         try {
+            // Auto-detect source language if enabled
+            if (autoDetectLang) {
+                const detected = await handleDetectLanguage()
+                if (detected) showAlert(`Detected: ${detected}`, 'info')
+            }
             const label = `Translation (${translateLang})`
             const data = await transformText({ endpoint: ENDPOINTS.TRANSLATE, text, target_language: translateLang }).unwrap()
             setAiResult({ label, result: data.result })
@@ -136,6 +156,8 @@ export default function useAiTools(text, setText, setMarkdownMode, setPreviewMod
         handleSentiment, handleLengthenText,
         handleEli5, handleProofread, handleGenerateTitle, handleRefactorPrompt,
         handleChangeFormat, handleChangeTone, handleTranslate, handleTransliterate,
+        handleEmojify, handleDetectLanguage,
+        autoDetectLang, setAutoDetectLang, detectedLang, setDetectedLang,
         handleAiAccept, handleAiDismiss,
     }
 }
