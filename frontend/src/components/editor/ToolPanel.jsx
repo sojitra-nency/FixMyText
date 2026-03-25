@@ -128,22 +128,67 @@ function ToolPanelItem({ tool, disabled, onClick, isFavorite, onToggleFavorite, 
 }
 
 /* ── Collapsible group header (VSCode Source Control style) ── */
-function GroupHeader({ label, count, collapsed, onToggle }) {
+function GroupHeader({ label, count, collapsed, onToggle, pinned }) {
   return (
-    <button className={`tu-group-header${collapsed ? ' tu-group-header--collapsed' : ''}`} onClick={onToggle}>
+    <button className={`tu-group-header${collapsed ? ' tu-group-header--collapsed' : ''}${pinned ? ' tu-group-header--pinned' : ''}`} onClick={onToggle}>
       <svg className="tu-group-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="6 9 12 15 18 9"/>
       </svg>
+      {pinned && (
+        <svg className="tu-group-pin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16h14v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1h1V4H7v2h1a1 1 0 0 1 1 1z"/>
+        </svg>
+      )}
       <span className="tu-group-label">{label}</span>
       <span className="tu-group-count">{count}</span>
     </button>
   )
 }
 
+/* ── Grid view tool card ───────────────────────────── */
+function ToolGridCard({ tool, disabled, onClick, isFavorite, onToggleFavorite, isActive, isSuggested, onHover, onLeave }) {
+  const isDisabled = disabled && tool.type !== 'drawer' && tool.type !== 'action'
+  const cardRef = useRef(null)
+
+  const handleClick = () => {
+    if (isDisabled) return
+    onClick()
+  }
+
+  const handleMouseEnter = () => {
+    if (tool.description && cardRef.current) {
+      const rect = cardRef.current.getBoundingClientRect()
+      onHover(tool.description, rect)
+    }
+  }
+
+  return (
+    <div
+      ref={cardRef}
+      className={`tu-tgrid-card${isActive ? ' tu-tgrid-card--active' : ''}${isDisabled ? ' tu-tgrid-card--disabled' : ''}`}
+      onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={onLeave}
+    >
+      <div className="tu-tgrid-card-icon">
+        <ToolIcon icon={tool.icon} color={tool.color} toolId={tool.id} />
+      </div>
+      <span className="tu-tgrid-card-name">{tool.label}</span>
+      {isSuggested && <span className="tu-tgrid-card-badge">suggested</span>}
+      <button
+        className={`tu-titem-fav tu-tgrid-card-fav${isFavorite ? ' tu-titem-fav--active' : ''}`}
+        onClick={e => { e.stopPropagation(); onToggleFavorite?.(tool.id) }}
+      >
+        {isFavorite ? '♥' : '♡'}
+      </button>
+    </div>
+  )
+}
+
 export default memo(function ToolPanel({
   tools, activeTab, onTabChange, onToolClick,
-  disabled, gamification, activePanel,
-  hideTabs, suggestedToolIds = [],
+  disabled, gamification, activeToolId,
+  hideTabs, viewMode = 'list', suggestedToolIds = [],
 }) {
   const [tooltip, setTooltip] = useState(null)
   const [collapsedGroups, setCollapsedGroups] = useState({})
@@ -189,9 +234,20 @@ export default memo(function ToolPanel({
   }, [tools, activeTab])
 
   // Group tools — each group contains tools sorted alphabetically
+  // Favorites are pinned at the top as their own group
+  const favorites = gamification?.favorites || []
   const groupedTools = useMemo(() => {
     const groups = []
     const groupMap = {}
+
+    // Collect pinned favorites from the filtered set
+    const pinnedTools = favorites.length > 0
+      ? filteredTools.filter(t => favorites.includes(t.id)).sort((a, b) => a.label.localeCompare(b.label))
+      : []
+
+    if (pinnedTools.length > 0) {
+      groups.push({ id: '_pinned', label: 'Pinned', tools: pinnedTools })
+    }
 
     for (const tool of filteredTools) {
       const gid = tool.group || 'other'
@@ -221,7 +277,7 @@ export default memo(function ToolPanel({
     }
 
     return groups
-  }, [filteredTools])
+  }, [filteredTools, favorites])
 
   return (
     <div className="tu-tpanel">
@@ -245,7 +301,7 @@ export default memo(function ToolPanel({
       <div className="tu-tpanel-list">
         <AnimatePresence mode="wait">
           <motion.div
-            key={activeTab}
+            key={`${activeTab}-${viewMode}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -258,24 +314,44 @@ export default memo(function ToolPanel({
                   count={group.tools.length}
                   collapsed={!!collapsedGroups[group.id]}
                   onToggle={() => toggleGroup(group.id)}
+                  pinned={group.id === '_pinned'}
                 />
                 {!collapsedGroups[group.id] && (
-                  <div className="tu-group-items">
-                    {group.tools.map(tool => (
-                      <ToolPanelItem
-                        key={tool.id}
-                        tool={tool}
-                        disabled={disabled}
-                        onClick={() => onToolClick(tool)}
-                        isFavorite={gamification?.favorites?.includes(tool.id)}
-                        onToggleFavorite={gamification?.toggleFavorite}
-                        isActive={tool.type === 'drawer' && activePanel === tool.panelId}
-                        isSuggested={suggestedToolIds.includes(tool.id)}
-                        onHover={handleHover}
-                        onLeave={handleLeave}
-                      />
-                    ))}
-                  </div>
+                  viewMode === 'grid' ? (
+                    <div className="tu-group-grid">
+                      {group.tools.map(tool => (
+                        <ToolGridCard
+                          key={tool.id}
+                          tool={tool}
+                          disabled={disabled}
+                          onClick={() => onToolClick(tool)}
+                          isFavorite={gamification?.favorites?.includes(tool.id)}
+                          onToggleFavorite={gamification?.toggleFavorite}
+                          isActive={activeToolId === tool.id}
+                          isSuggested={suggestedToolIds.includes(tool.id)}
+                          onHover={handleHover}
+                          onLeave={handleLeave}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="tu-group-items">
+                      {group.tools.map(tool => (
+                        <ToolPanelItem
+                          key={tool.id}
+                          tool={tool}
+                          disabled={disabled}
+                          onClick={() => onToolClick(tool)}
+                          isFavorite={gamification?.favorites?.includes(tool.id)}
+                          onToggleFavorite={gamification?.toggleFavorite}
+                          isActive={activeToolId === tool.id}
+                          isSuggested={suggestedToolIds.includes(tool.id)}
+                          onHover={handleHover}
+                          onLeave={handleLeave}
+                        />
+                      ))}
+                    </div>
+                  )
                 )}
               </div>
             ))}

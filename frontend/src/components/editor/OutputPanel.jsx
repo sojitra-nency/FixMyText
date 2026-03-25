@@ -1,6 +1,7 @@
 import { memo, useMemo, useState, useRef, useEffect, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { marked } from 'marked'
+import { useCreateShareMutation } from '../../store/api/shareApi'
 
 export default memo(function OutputPanel({
   aiResult, hasMarkdown, onAiDismiss,
@@ -9,6 +10,7 @@ export default memo(function OutputPanel({
   speech, onDyslexiaToggle,
   activeTool, loading, exportTools,
 }) {
+  const [createShare, { isLoading: isSharing }] = useCreateShareMutation()
   const [saveMenuOpen, setSaveMenuOpen] = useState(false)
   const [mdPreview, setMdPreview] = useState(false)
   const [menuPos, setMenuPos] = useState({ top: 0, left: 0 })
@@ -77,6 +79,21 @@ export default memo(function OutputPanel({
     const utterance = new SpeechSynthesisUtterance(outputText)
     window.speechSynthesis.speak(utterance)
     showAlert('Reading output aloud...', 'info')
+  }
+
+  const handleShare = async () => {
+    if (!outputText || isSharing) return
+    try {
+      const result = await createShare({
+        tool_id: activeTool?.id || 'unknown',
+        tool_label: activeTool?.label || aiResult?.label || 'Text Transform',
+        output_text: outputText,
+      }).unwrap()
+      await navigator.clipboard.writeText(result.share_url)
+      showAlert('Share link copied to clipboard!', 'success')
+    } catch {
+      showAlert('Failed to create share link', 'danger')
+    }
   }
 
   const saveMenu = saveMenuOpen && createPortal(
@@ -186,6 +203,16 @@ export default memo(function OutputPanel({
             </button>
           </>
         )}
+        <div className="tu-input-toolbar-sep" />
+        <button
+          className="tu-input-toolbar-btn"
+          onClick={handleShare}
+          disabled={isSharing}
+          title="Generate shareable link"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          <span>{isSharing ? 'Sharing...' : 'Share'}</span>
+        </button>
       </div>
       {saveMenu}
       <div className="tu-output-body" onScroll={e => {

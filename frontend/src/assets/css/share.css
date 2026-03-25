@@ -1,0 +1,334 @@
+/* ═══════════════════════════════════════════════════════
+   Share Page — Polished landing-style result viewer
+   ═══════════════════════════════════════════════════════ */
+
+.sh-page {
+  min-height: calc(100vh - 35px);
+  background: var(--bg);
+  font-family: var(--font-display);
+  overflow-x: hidden;
+}
+
+/* ── Loading / Error ──────────────────────────────── */
+.sh-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-top: 180px;
+  text-align: center;
+}
+.sh-state-emoji { font-size: 3rem; line-height: 1; }
+.sh-state-title { font-size: 1.2rem; font-weight: 700; color: var(--text); margin: 4px 0 0; }
+.sh-state-text  { color: var(--text-3); font-size: 0.85rem; }
+.sh-state-desc  { color: var(--text-3); font-size: 0.82rem; margin: 0; max-width: 340px; line-height: 1.5; }
+
+/* ═══════════════════════════════════════════════════════
+   Hero — branded top section with glow
+   ═══════════════════════════════════════════════════════ */
+.sh-hero {
+  position: relative;
+  padding: 48px 24px 40px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.sh-hero-glow {
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 600px;
+  height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  opacity: 0.6;
+  pointer-events: none;
+  filter: blur(60px);
+}
+
+.sh-hero-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.sh-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent);
+  background: var(--accent-glow);
+  padding: 4px 14px;
+  border-radius: var(--r-pill);
+  border: 1px solid rgba(0, 122, 204, 0.2);
+}
+
+.sh-hero-tool {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sh-hero-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.sh-hero-icon .tu-titem-icon { width: 28px; min-width: 28px; height: 28px; font-size: 0.9rem; }
+.sh-hero-icon .tu-titem-icon svg { width: 22px; height: 22px; }
+
+.sh-hero-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.sh-hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
+
+.sh-dot {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--text-3);
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+.sh-hero-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* ── Buttons ──────────────────────────────────────── */
+.sh-btn,
+.sh-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: var(--font-display);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.sh-btn:hover, .sh-cta-btn:hover {
+  background: var(--list-hover);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.sh-btn--accent {
+  background: var(--button-bg);
+  color: var(--button-fg);
+  border-color: var(--button-bg);
+}
+.sh-btn--accent:hover {
+  background: var(--button-hover);
+  border-color: var(--button-hover);
+  box-shadow: 0 4px 16px rgba(0, 122, 204, 0.25);
+}
+.sh-btn--success {
+  border-color: var(--emerald);
+  color: var(--emerald);
+}
+
+/* ═══════════════════════════════════════════════════════
+   Mock Editor Card — the main output display
+   ═══════════════════════════════════════════════════════ */
+.sh-card-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 0 24px 32px;
+}
+
+.sh-card {
+  width: 100%;
+  max-width: 860px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.15),
+    0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+  background: var(--editor-bg);
+}
+
+/* Titlebar with macOS dots */
+.sh-card-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.sh-card-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.sh-card-title {
+  flex: 1;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 32px;
+}
+
+.sh-card-copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: all var(--t);
+  flex-shrink: 0;
+}
+.sh-card-copy:hover {
+  background: var(--list-hover);
+  color: var(--text);
+}
+
+/* Code body */
+.sh-card-body {
+  display: flex;
+  max-height: 60vh;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.sh-card-gutter {
+  display: flex;
+  flex-direction: column;
+  padding: 14px 0;
+  min-width: 48px;
+  text-align: right;
+  user-select: none;
+  border-right: 1px solid var(--border);
+  position: sticky;
+  left: 0;
+  background: var(--editor-bg);
+  z-index: 1;
+}
+
+.sh-card-gutter span {
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  color: var(--editor-gutter);
+  line-height: 1.7;
+  padding: 0 12px 0 8px;
+}
+
+.sh-card-pre {
+  flex: 1;
+  padding: 14px 20px;
+  margin: 0;
+  font-size: 0.88rem;
+  font-family: var(--font-mono);
+  color: var(--editor-fg);
+  line-height: 1.7;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+/* When gutter is hidden (single-line output), pre is the only child */
+.sh-card-body > .sh-card-pre:first-child {
+  padding-left: 24px;
+}
+
+/* Mini status bar */
+.sh-card-status {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 14px;
+  height: 26px;
+  background: var(--statusbar-bg);
+  color: var(--statusbar-fg);
+  font-size: 0.65rem;
+  font-family: var(--font-display);
+  border-top: 1px solid var(--statusbar-border);
+}
+
+/* ═══════════════════════════════════════════════════════
+   Footer CTA strip
+   ═══════════════════════════════════════════════════════ */
+.sh-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 20px 24px 28px;
+  font-size: 0.8rem;
+  color: var(--text-3);
+}
+
+.sh-footer-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color var(--t);
+}
+.sh-footer-link:hover { color: var(--accent-hover); }
+
+/* ═══════════════════════════════════════════════════════
+   Responsive
+   ═══════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .sh-hero { padding: 36px 16px 28px; }
+  .sh-hero-title { font-size: 1.3rem; }
+  .sh-hero-tool { gap: 10px; }
+  .sh-hero-icon { width: 40px; height: 40px; }
+  .sh-hero-actions { flex-direction: column; width: 100%; max-width: 280px; }
+  .sh-btn { justify-content: center; }
+  .sh-card-wrap { padding: 0 12px 24px; }
+  .sh-card { border-radius: 8px; }
+  .sh-card-body { max-height: 360px; }
+  .sh-card-gutter { min-width: 36px; }
+  .sh-card-gutter span { font-size: 0.7rem; padding: 0 8px 0 6px; }
+  .sh-card-pre { padding: 12px 14px; font-size: 0.82rem; }
+  .sh-hero-meta { flex-wrap: wrap; justify-content: center; }
+}

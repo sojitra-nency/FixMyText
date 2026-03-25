@@ -11,6 +11,7 @@ const LoginPage = lazy(() => import('./pages/LoginPage'));
 const SignupPage = lazy(() => import('./pages/SignupPage'));
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const PricingPage = lazy(() => import('./pages/PricingPage'));
+const SharePage = lazy(() => import('./pages/SharePage'));
 import { useAlert } from './hooks/useAlert';
 import { useTheme } from './hooks/useTheme';
 import { useAuth } from './hooks/useAuth';
@@ -81,6 +82,10 @@ function AppInner() {
           <Route
             path={ROUTES.DASHBOARD}
             element={<DashboardPage gamification={gamification} user={user} isAuthenticated={isAuthenticated} showAlert={showAlert} mode={mode} setMode={setMode} subscription={subscription} />}
+          />
+          <Route
+            path={ROUTES.SHARE}
+            element={<SharePage showAlert={showAlert} />}
           />
         </Routes>
       </Suspense>

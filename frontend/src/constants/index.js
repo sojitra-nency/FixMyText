@@ -13,4 +13,5 @@ export const ROUTES = {
     SIGNUP: '/signup',
     DASHBOARD: '/dashboard',
     PRICING: '/pricing',
+    SHARE: '/share/:id',
 };

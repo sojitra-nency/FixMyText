@@ -5,6 +5,7 @@ import { userDataApi } from './api/userDataApi'
 import { subscriptionApi } from './api/subscriptionApi'
 import { passesApi } from './api/passesApi'
 import { historyApi } from './api/historyApi'
+import { shareApi } from './api/shareApi'
 import authReducer from './slices/authSlice'
 import { errorMiddleware } from './middleware/errorMiddleware'
 
@@ -16,6 +17,7 @@ export const store = configureStore({
     [subscriptionApi.reducerPath]: subscriptionApi.reducer,
     [passesApi.reducerPath]: passesApi.reducer,
     [historyApi.reducerPath]: historyApi.reducer,
+    [shareApi.reducerPath]: shareApi.reducer,
     auth: authReducer,
   },
   middleware: (getDefaultMiddleware) =>
@@ -26,5 +28,6 @@ export const store = configureStore({
       .concat(subscriptionApi.middleware)
       .concat(passesApi.middleware)
       .concat(historyApi.middleware)
+      .concat(shareApi.middleware)
       .concat(errorMiddleware),
 })

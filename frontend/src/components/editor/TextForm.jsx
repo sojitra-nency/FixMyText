@@ -69,6 +69,87 @@ const DRAWERS = {
     history:  { title: 'History / Undo',          color: 'slate' },
 }
 
+/* ── Tab bar with scroll arrows that disable at boundaries ── */
+function TabBarWrap({ workspaceTabs, activeWorkspaceId, setActiveWorkspaceId, setActivePanel, setSaveModal, closeWorkspaceTab, onTabSwitch }) {
+    const barRef = useRef(null)
+    const [scrollState, setScrollState] = useState({ overflows: false, atStart: true, atEnd: true })
+
+    const updateScroll = useCallback(() => {
+        const el = barRef.current
+        if (!el) return
+        const overflows = el.scrollWidth > el.clientWidth
+        const atStart = el.scrollLeft <= 0
+        const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1
+        setScrollState({ overflows, atStart, atEnd })
+    }, [])
+
+    useEffect(() => {
+        const el = barRef.current
+        if (!el) return
+        updateScroll()
+        el.addEventListener('scroll', updateScroll, { passive: true })
+        const ro = new ResizeObserver(updateScroll)
+        ro.observe(el)
+        return () => { el.removeEventListener('scroll', updateScroll); ro.disconnect() }
+    }, [updateScroll, workspaceTabs.length])
+
+    return (
+        <div className="tu-tab-bar-wrap">
+            {scrollState.overflows && (
+                <button
+                    className={`tu-tab-scroll tu-tab-scroll--left${scrollState.atStart ? ' tu-tab-scroll--disabled' : ''}`}
+                    onClick={() => barRef.current?.scrollBy({ left: -200, behavior: 'smooth' })}
+                    disabled={scrollState.atStart}
+                    title="Scroll tabs left"
+                >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+            )}
+            <div ref={barRef} className="tu-tab-bar" onWheel={e => { e.currentTarget.scrollLeft += e.deltaY; e.preventDefault() }}>
+                {workspaceTabs.map(tab => (
+                    <div
+                        key={tab.id}
+                        className={`tu-tab${activeWorkspaceId === tab.id ? ' tu-tab--active' : ''}`}
+                        onClick={() => {
+                            if (tab.id !== activeWorkspaceId) onTabSwitch?.()
+                            setActiveWorkspaceId(tab.id)
+                            if (tab.type === 'drawer') setActivePanel(tab.panelId)
+                        }}
+                        title={`~/FixMyText/workspace/${tab.label}`}
+                    >
+                        <ToolIcon icon={tab.icon} color={tab.tool?.color || tab.color} toolId={tab.tool?.id || tab.panelId} />
+                        <span className="tu-tab-name">{tab.label}</span>
+                        <button
+                            className="tu-tab-save"
+                            onClick={e => {
+                                e.stopPropagation()
+                                setSaveModal({ tabId: tab.id, defaultName: tab.label })
+                            }}
+                            title="Save to templates (Ctrl+S)"
+                        >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                        </button>
+                        <button
+                            className="tu-tab-close"
+                            onClick={e => { e.stopPropagation(); closeWorkspaceTab(tab.id) }}
+                        >✕</button>
+                    </div>
+                ))}
+            </div>
+            {scrollState.overflows && (
+                <button
+                    className={`tu-tab-scroll tu-tab-scroll--right${scrollState.atEnd ? ' tu-tab-scroll--disabled' : ''}`}
+                    onClick={() => barRef.current?.scrollBy({ left: 200, behavior: 'smooth' })}
+                    disabled={scrollState.atEnd}
+                    title="Scroll tabs right"
+                >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </button>
+            )}
+        </div>
+    )
+}
+
 export default function TextForm(props) {
     const [toolTexts, setToolTexts] = useState({})
     const [dyslexiaMode, setDyslexiaMode] = useState(false)
@@ -78,9 +159,12 @@ export default function TextForm(props) {
     const [activeTab, setActiveTab] = useState(null)
     const [sidebarOpen, setSidebarOpen] = useState(true)
     const [settingsOpen, setSettingsOpen] = useState(false)
+    const [toolViewMode, setToolViewMode] = useState(() => localStorage.getItem('fmx_tool_view') || 'list')
     const [workspaceTabs, setWorkspaceTabs] = useState([])
     const [activeWorkspaceId, setActiveWorkspaceId] = useState(null)
-    const [toolResults, setToolResults] = useState({})
+    const [toolResults, setToolResults] = useState({})  // keyed by tab ID, not tool ID
+    const aiResultSourceRef = useRef(null)  // tracks which toolId/panelId produced the current ai.aiResult
+    const lastTextPerTab = useRef({})  // tracks last input text per tab for debounce
     const [savedTabs, setSavedTabs] = useState({})
     const [saveModal, setSaveModal] = useState(null) // { tabId, defaultName }
 
@@ -126,6 +210,8 @@ export default function TextForm(props) {
     const compare = useTextCompare(text, showAlert)
     const generators = useGenerators(setText, showAlert)
     const formatter = useFormatter(text, setLocalLoading, showAlert, (label, result) => {
+        const toolId = activeWorkspaceId?.replace('tool-', '') || null
+        aiResultSourceRef.current = toolId
         ai.setAiResult({ label, result })
         setPreviewMode('result')
         history.pushHistory(label, text, result, { toolType: 'local' })
@@ -173,13 +259,19 @@ export default function TextForm(props) {
         if (!activeTab) setActiveTab('all')
     }, [activeTab])
 
-    // Capture AI results per-tool for persistence
+    // Capture AI results per-tab for persistence
+    // Keyed by tab ID so each tab is fully independent
     useEffect(() => {
-        if (ai.aiResult && activeWorkspaceId?.startsWith('tool-')) {
-            const toolId = activeWorkspaceId.replace('tool-', '')
-            setToolResults(prev => ({ ...prev, [toolId]: ai.aiResult }))
+        if (ai.aiResult && activeWorkspaceId) {
+            const ws = workspaceTabs.find(t => t.id === activeWorkspaceId)
+            if (!ws) return
+            // Only persist if this result belongs to the active tab
+            const expectedSource = ws.type === 'tool' ? ws.tool.id : ws.panelId
+            if (aiResultSourceRef.current === expectedSource) {
+                setToolResults(prev => ({ ...prev, [activeWorkspaceId]: ai.aiResult }))
+            }
         }
-    }, [ai.aiResult, activeWorkspaceId])
+    }, [ai.aiResult, activeWorkspaceId, workspaceTabs])
 
     const closeWorkspaceTab = (tabId) => {
         const tab = workspaceTabs.find(t => t.id === tabId)
@@ -198,12 +290,15 @@ export default function TextForm(props) {
             delete next[tabId]
             return next
         })
-        if (tab?.type === 'tool') {
-            setToolResults(prev => {
-                const next = { ...prev }
-                delete next[tab.tool.id]
-                return next
-            })
+        // Clean up per-tab result
+        setToolResults(prev => {
+            const next = { ...prev }
+            delete next[tabId]
+            return next
+        })
+        // Clean up per-tab text tracking
+        if (lastTextPerTab.current[tabId] !== undefined) {
+            delete lastTextPerTab.current[tabId]
         }
     }
 
@@ -222,6 +317,7 @@ export default function TextForm(props) {
         const original = text
         try {
             const data = await transformText({ endpoint, text }).unwrap()
+            if (toolMeta?.toolId) aiResultSourceRef.current = toolMeta.toolId
             ai.setAiResult({ label: successMsg, result: data.result })
             setPreviewMode('result')
             history.pushHistory(successMsg, original, data.result, toolMeta)
@@ -423,6 +519,9 @@ export default function TextForm(props) {
 
         gamification.recordToolUse(tool.id, text.length)
 
+        // Stamp the source so the persistence effect knows which tool produced the result
+        aiResultSourceRef.current = tool.id
+
         if (tool.type === 'api') {
             callApi(tool.endpoint, tool.successMsg, { toolId: tool.id, toolType: tool.type }).then(res => {
                 if (res?.success) pipeline.addStep(tool.id, tool.label, res.result)
@@ -486,15 +585,25 @@ export default function TextForm(props) {
     }, [text, activeWorkspaceId, executeToolAction])
 
     // ── Debounced auto-run: re-run tool 2s after user stops typing ──
-    const lastTextRef = useRef('')
     useEffect(() => {
         if (!activeWorkspaceId || !text || loading) return
-        // Find active tool
         const ws = workspaceTabs.find(t => t.id === activeWorkspaceId)
         if (!ws || ws.type !== 'tool') return
-        // Skip if text hasn't actually changed (e.g. tab switch)
-        if (text === lastTextRef.current) return
-        lastTextRef.current = text
+
+        const prevText = lastTextPerTab.current[activeWorkspaceId]
+        // First time seeing this tab — record text, don't auto-run (result may already be stored)
+        if (prevText === undefined) {
+            lastTextPerTab.current[activeWorkspaceId] = text
+            return
+        }
+        // Text hasn't actually changed (tab switch back to same text)
+        if (text === prevText) return
+        lastTextPerTab.current[activeWorkspaceId] = text
+
+        // Text genuinely changed — clear stale result and schedule re-run
+        if (toolResults[activeWorkspaceId]) {
+            setToolResults(prev => { const next = { ...prev }; delete next[activeWorkspaceId]; return next })
+        }
 
         const timer = setTimeout(() => {
             executeToolAction(ws.tool)
@@ -547,7 +656,7 @@ export default function TextForm(props) {
         redo: () => history.handleRedo(),
         copyOutput: () => {
             const ws = workspaceTabs.find(t => t.id === activeWorkspaceId)
-            const result = ws?.type === 'tool' ? (toolResults[ws.tool.id] || null) : ai.aiResult
+            const result = toolResults[activeWorkspaceId] || ai.aiResult
             if (result?.result) {
                 navigator.clipboard.writeText(result.result)
                 showAlert('Output copied', 'success')
@@ -699,6 +808,30 @@ export default function TextForm(props) {
                         )}
                     </span>
                     <div className="tu-sidebar-header-actions">
+                        {(activeTab && !activeTab.startsWith('_') || activeTab === '_favourites' || activeTab === '_new') && (
+                            <>
+                                <button
+                                    className={`tu-sidebar-header-btn${toolViewMode === 'list' ? ' tu-sidebar-header-btn--active' : ''}`}
+                                    onClick={() => { setToolViewMode('list'); localStorage.setItem('fmx_tool_view', 'list') }}
+                                    title="List view"
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                                        <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+                                    </svg>
+                                </button>
+                                <button
+                                    className={`tu-sidebar-header-btn${toolViewMode === 'grid' ? ' tu-sidebar-header-btn--active' : ''}`}
+                                    onClick={() => { setToolViewMode('grid'); localStorage.setItem('fmx_tool_view', 'grid') }}
+                                    title="Grid view"
+                                >
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                                        <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+                                    </svg>
+                                </button>
+                            </>
+                        )}
                         <button
                             className="tu-sidebar-header-btn"
                             onClick={() => setSidebarOpen(false)}
@@ -718,9 +851,15 @@ export default function TextForm(props) {
                         onToolClick={handleToolClick}
                         disabled={loading}
                         gamification={gamification}
-                        activePanel={activePanel}
+                        activeToolId={(() => {
+                            const ws = workspaceTabs.find(t => t.id === activeWorkspaceId)
+                            if (ws?.type === 'tool') return ws.tool.id
+                            if (ws?.type === 'drawer') return TOOLS.find(t => t.panelId === ws.panelId)?.id || null
+                            return null
+                        })()}
                         ai={ai}
                         hideTabs
+                        viewMode={toolViewMode}
                         suggestedToolIds={suggestions.suggestions.map(t => t.id)}
                     />
                 )}
@@ -736,6 +875,28 @@ export default function TextForm(props) {
                                 <div className="tu-sidebar-panel-empty">
                                     No favourite tools yet.<br />
                                     Click ♡ on any tool to add it here.
+                                </div>
+                            ) : toolViewMode === 'grid' ? (
+                                <div className="tu-tpanel-list">
+                                    <div className="tu-group-grid">
+                                        {favTools.map(tool => (
+                                            <div
+                                                key={tool.id}
+                                                className="tu-tgrid-card"
+                                                onClick={() => handleToolClick(tool)}
+                                            >
+                                                <div className="tu-tgrid-card-icon">
+                                                    <ToolIcon icon={tool.icon} color={tool.color} toolId={tool.id} />
+                                                </div>
+                                                <span className="tu-tgrid-card-name">{tool.label}</span>
+                                                <button
+                                                    className="tu-titem-fav tu-tgrid-card-fav tu-titem-fav--active"
+                                                    onClick={e => { e.stopPropagation(); gamification?.toggleFavorite(tool.id) }}
+                                                    title="Remove from favourites"
+                                                >♥</button>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="tu-tpanel-list">
@@ -769,6 +930,23 @@ export default function TextForm(props) {
                             {newTools.length === 0 ? (
                                 <div className="tu-sidebar-panel-empty">
                                     You've discovered all tools!
+                                </div>
+                            ) : toolViewMode === 'grid' ? (
+                                <div className="tu-tpanel-list">
+                                    <div className="tu-group-grid">
+                                        {newTools.map(tool => (
+                                            <div
+                                                key={tool.id}
+                                                className="tu-tgrid-card"
+                                                onClick={() => handleToolClick(tool)}
+                                            >
+                                                <div className="tu-tgrid-card-icon">
+                                                    <ToolIcon icon={tool.icon} color={tool.color} toolId={tool.id} />
+                                                </div>
+                                                <span className="tu-tgrid-card-name">{tool.label}</span>
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="tu-tpanel-list">
@@ -1030,56 +1208,15 @@ export default function TextForm(props) {
             {/* ─── Center: Editor Area ─── */}
             <div className="tu-forge-center">
                 {/* ─── Workspace Tab Bar (top-level, tools as files) ─── */}
-                {workspaceTabs.length > 0 && <div className="tu-tab-bar-wrap">
-                    {(() => {
-                        const el = document.querySelector('.tu-tab-bar')
-                        const overflows = el ? el.scrollWidth > el.clientWidth : false
-                        return overflows ? (
-                            <button className="tu-tab-scroll tu-tab-scroll--left" onClick={() => { if (el) el.scrollBy({ left: -200, behavior: 'smooth' }) }} title="Scroll tabs left">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-                            </button>
-                        ) : null
-                    })()}
-                    <div className="tu-tab-bar" onWheel={e => { e.currentTarget.scrollLeft += e.deltaY; e.preventDefault() }}>
-                        {workspaceTabs.map(tab => (
-                            <div
-                                key={tab.id}
-                                className={`tu-tab${activeWorkspaceId === tab.id ? ' tu-tab--active' : ''}`}
-                                onClick={() => {
-                                    setActiveWorkspaceId(tab.id)
-                                    if (tab.type === 'drawer') setActivePanel(tab.panelId)
-                                }}
-                                title={`~/FixMyText/workspace/${tab.label}`}
-                            >
-                                <ToolIcon icon={tab.icon} color={tab.tool?.color || tab.color} toolId={tab.tool?.id || tab.panelId} />
-                                <span className="tu-tab-name">{tab.label}</span>
-                                <button
-                                    className="tu-tab-save"
-                                    onClick={e => {
-                                        e.stopPropagation()
-                                        setSaveModal({ tabId: tab.id, defaultName: tab.label })
-                                    }}
-                                    title="Save to templates (Ctrl+S)"
-                                >
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                                </button>
-                                <button
-                                    className="tu-tab-close"
-                                    onClick={e => { e.stopPropagation(); closeWorkspaceTab(tab.id) }}
-                                >✕</button>
-                            </div>
-                        ))}
-                    </div>
-                    {(() => {
-                        const el = document.querySelector('.tu-tab-bar')
-                        const overflows = el ? el.scrollWidth > el.clientWidth : false
-                        return overflows ? (
-                            <button className="tu-tab-scroll tu-tab-scroll--right" onClick={() => { if (el) el.scrollBy({ left: 200, behavior: 'smooth' }) }} title="Scroll tabs right">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                            </button>
-                        ) : null
-                    })()}
-                </div>}
+                {workspaceTabs.length > 0 && <TabBarWrap
+                    workspaceTabs={workspaceTabs}
+                    activeWorkspaceId={activeWorkspaceId}
+                    setActiveWorkspaceId={setActiveWorkspaceId}
+                    setActivePanel={setActivePanel}
+                    setSaveModal={setSaveModal}
+                    closeWorkspaceTab={closeWorkspaceTab}
+                    onTabSwitch={() => { ai.setAiResult(null); setPreviewMode(null) }}
+                />}
 
                 {/* ─── Landing page (no tool selected) ─── */}
                 {!activeWorkspaceId && (
@@ -1435,10 +1572,12 @@ export default function TextForm(props) {
                             <div className="tu-gen-fullpage">
                                 {workspaceTabs.find(t => t.id === activeWorkspaceId)?.panelId === 'password'
                                     ? <PasswordDrawer {...generators} showAlert={showAlert} onResult={(pwd) => {
+                                        aiResultSourceRef.current = 'password'
                                         ai.setAiResult({ label: 'Password', result: pwd })
                                         setPreviewMode('result')
                                     }} />
                                     : <RandomTextDrawer {...generators} onResult={(txt) => {
+                                        aiResultSourceRef.current = 'randtext'
                                         ai.setAiResult({ label: 'Random Text', result: txt })
                                         setPreviewMode('result')
                                     }} />
@@ -1596,14 +1735,10 @@ export default function TextForm(props) {
                                     ) : null
                                 }
                             }
-                            const toolResult = ws?.type === 'tool' ? toolResults[ws.tool.id] : null
                             const isNoInputDrawer = ['password', 'randtext'].includes(ws?.panelId)
-                            // Tool tabs: own stored result. No-input drawers: always show aiResult. Others: require text.
-                            const displayResult = ws?.type === 'tool'
-                                ? toolResult
-                                : isNoInputDrawer
-                                    ? ai.aiResult
-                                    : (text ? ai.aiResult : null)
+                            // Each tab's result is stored independently by tab ID
+                            const tabResult = toolResults[activeWorkspaceId] || null
+                            const displayResult = tabResult || (isNoInputDrawer ? ai.aiResult : (text ? ai.aiResult : null))
                             return (
                                 <OutputPanel
                                     aiResult={displayResult || null}
@@ -1612,7 +1747,6 @@ export default function TextForm(props) {
                                         const r = displayResult
                                         if (r) {
                                             if (isNoInputDrawer) {
-                                                // No textarea — copy to clipboard instead
                                                 navigator.clipboard.writeText(r.result)
                                                 showAlert('Copied to clipboard!', 'success')
                                             } else {
@@ -1620,18 +1754,14 @@ export default function TextForm(props) {
                                                 if (ai.hasMarkdown(r.result)) setMarkdownMode(true)
                                             }
                                         }
-                                        if (ws?.type === 'tool') {
-                                            setToolResults(prev => { const next = { ...prev }; delete next[ws.tool.id]; return next })
-                                        }
+                                        setToolResults(prev => { const next = { ...prev }; delete next[activeWorkspaceId]; return next })
                                         if (!isNoInputDrawer) {
                                             ai.setAiResult(null)
                                             setPreviewMode(null)
                                         }
                                     }}
                                     onAiDismiss={() => {
-                                        if (ws?.type === 'tool') {
-                                            setToolResults(prev => { const next = { ...prev }; delete next[ws.tool.id]; return next })
-                                        }
+                                        setToolResults(prev => { const next = { ...prev }; delete next[activeWorkspaceId]; return next })
                                         ai.setAiResult(null)
                                         setPreviewMode(null)
                                     }}
@@ -1640,7 +1770,7 @@ export default function TextForm(props) {
                                     showAlert={showAlert} text={text}
                                     dyslexiaMode={dyslexiaMode} markdownMode={markdownMode}
                                     speech={speech} onDyslexiaToggle={handleDyslexiaMode}
-                                    activeTool={ws?.type === 'tool' ? ws.tool : null}
+                                    activeTool={ws?.type === 'tool' ? ws.tool : ws?.type === 'drawer' ? TOOLS.find(t => t.panelId === ws.panelId) || null : null}
                                     loading={loading}
                                     exportTools={exportTools}
                                 />

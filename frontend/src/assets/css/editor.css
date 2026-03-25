@@ -384,6 +384,11 @@
   color: var(--text);
 }
 
+.tu-sidebar-header-btn--active {
+  background: var(--list-active);
+  color: var(--tab-active-text);
+}
+
 /* ── Sidebar Panel (Templates / History) ──────────── */
 .tu-sidebar-panel {
   flex: 1;
@@ -725,8 +730,13 @@
   color: #fff;
   background: var(--accent);
 }
-.tu-tab-scroll:active {
+.tu-tab-scroll:active:not(:disabled) {
   background: var(--accent-hover);
+}
+.tu-tab-scroll--disabled {
+  opacity: 0.35;
+  cursor: default;
+  pointer-events: none;
 }
 
 .tu-tab-bar {
