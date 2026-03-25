@@ -1,0 +1,116 @@
+/* ═══════════════════════════════════════════════════════
+   Format Toolbar — Slack-style floating text formatter
+   ═══════════════════════════════════════════════════════ */
+
+.tu-fmt-toolbar {
+  position: fixed;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 3px 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.24),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
+  animation: tu-fmt-in 0.12s ease-out;
+}
+
+@keyframes tu-fmt-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.tu-fmt-toolbar-group {
+  display: contents;
+}
+
+.tu-fmt-toolbar-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 2px;
+  flex-shrink: 0;
+}
+
+.tu-fmt-toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 28px;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all var(--t);
+  position: relative;
+}
+
+.tu-fmt-toolbar-btn:hover {
+  background: var(--list-hover);
+  color: var(--text);
+}
+
+.tu-fmt-toolbar-btn:active {
+  background: var(--list-active);
+}
+
+.tu-fmt-toolbar-kbd {
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* Bold */
+.tu-fmt-toolbar-btn:nth-child(1) .tu-fmt-toolbar-kbd {
+  font-weight: 900;
+}
+
+/* Italic */
+.tu-fmt-toolbar-btn:nth-child(2) .tu-fmt-toolbar-kbd {
+  font-style: italic;
+}
+
+/* Strikethrough */
+.tu-fmt-toolbar-btn:nth-child(3) .tu-fmt-toolbar-kbd {
+  text-decoration: line-through;
+}
+
+/* Code — mono font */
+.tu-fmt-toolbar-group:nth-child(4) .tu-fmt-toolbar-kbd,
+.tu-fmt-toolbar-group:nth-child(5) .tu-fmt-toolbar-kbd {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+}
+
+/* Tooltip on hover */
+.tu-fmt-toolbar-btn::after {
+  content: attr(title);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 3px 8px;
+  background: #1E1E1E;
+  color: #CCC;
+  font-size: 0.62rem;
+  font-weight: 500;
+  font-family: var(--font-display);
+  white-space: nowrap;
+  border-radius: 3px;
+  border: 1px solid #454545;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s;
+}
+
+.tu-fmt-toolbar-btn:hover::after {
+  opacity: 1;
+}

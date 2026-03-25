@@ -44,6 +44,7 @@ import BottomPanel from './BottomPanel'
 import CommandPalette from '../layout/CommandPalette'
 import KeyboardShortcuts from '../layout/KeyboardShortcuts'
 import AchievementToast from '../gamification/AchievementToast'
+import FormatToolbar from './FormatToolbar'
 
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -244,6 +245,7 @@ export default function TextForm(props) {
     // Resizable panels
     const splitRef = useRef(null)
     const gutterRef = useRef(null)
+    const textareaRef = useRef(null)
     const sidebarResize = useResize('horizontal', 240, { min: 160, max: 480, storageKey: 'fmx_sidebar_w' })
     const splitResize = useResize('horizontal', 50, { min: 20, max: 80, storageKey: 'fmx_split_pct', unit: 'percent', containerRef: splitRef })
     const bottomResize = useResize('vertical', 200, { min: 80, max: 500, storageKey: 'fmx_bottom_h' })
@@ -1669,6 +1671,7 @@ export default function TextForm(props) {
                                 ))}
                             </div>
                             <textarea
+                                ref={textareaRef}
                                 className="tu-textarea"
                                 id="text"
                                 value={text}
@@ -1682,20 +1685,23 @@ export default function TextForm(props) {
                                 placeholder="// Start typing or paste your text here..."
                                 style={{ tabSize: formatter.fmtCfg.tabWidth, MozTabSize: formatter.fmtCfg.tabWidth }}
                             />
+                            <FormatToolbar
+                                textareaRef={textareaRef}
+                                text={text}
+                                setText={setText}
+                                enabled={(() => {
+                                    const ws = workspaceTabs.find(t => t.id === activeWorkspaceId)
+                                    if (!ws || ws.type !== 'tool') return false
+                                    const g = ws.tool.group
+                                    return ['ai_writing', 'ai_content', 'language', 'whitespace', 'case', 'lines'].includes(g)
+                                })()}
+                            />
                         </div>
                         {loading && (
                             <div className="tu-loading">
                                 <div className="tu-spinner" />
                                 <span>Processing...</span>
                             </div>
-                        )}
-                        {/* Smart Suggestions — below input */}
-                        {suggestions.suggestions.length > 0 && (
-                            <SmartSuggestions
-                                suggestions={suggestions.suggestions}
-                                onToolClick={handleToolClick}
-                                onDismiss={suggestions.dismiss}
-                            />
                         )}
                         {/* Compare With input (shown below main input when compare tool is active) */}
                         {workspaceTabs.find(t => t.id === activeWorkspaceId)?.panelId === 'compare' && (
@@ -1773,6 +1779,11 @@ export default function TextForm(props) {
                                     activeTool={ws?.type === 'tool' ? ws.tool : ws?.type === 'drawer' ? TOOLS.find(t => t.panelId === ws.panelId) || null : null}
                                     loading={loading}
                                     exportTools={exportTools}
+                                    onOutputEdit={(newText) => {
+                                        const updated = { ...displayResult, result: newText }
+                                        setToolResults(prev => ({ ...prev, [activeWorkspaceId]: updated }))
+                                        ai.setAiResult(updated)
+                                    }}
                                 />
                             )
                         })()}
@@ -1790,6 +1801,15 @@ export default function TextForm(props) {
                     gamification={gamification}
                     style={{ height: bottomResize.size }}
                 />
+
+                {/* Smart Suggestions — below bottom panel */}
+                {suggestions.suggestions.length > 0 && (
+                    <SmartSuggestions
+                        suggestions={suggestions.suggestions}
+                        onToolClick={handleToolClick}
+                        onDismiss={suggestions.dismiss}
+                    />
+                )}
 
                 </>}
             </div>
