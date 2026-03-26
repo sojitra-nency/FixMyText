@@ -4,6 +4,7 @@ import { useTransformTextMutation } from '../../store/api/textApi'
 import { useSelector } from 'react-redux'
 import { useLogoutMutation } from '../../store/api/authApi'
 import { useGetHistoryQuery, useDeleteHistoryEntryMutation, useClearHistoryMutation } from '../../store/api/historyApi'
+import { useGetUiSettingsQuery, useUpdateUiSettingsMutation } from '../../store/api/userDataApi'
 import { TOOLS, PERSONAS, QUEST_TEMPLATES, USE_CASE_TABS, ACHIEVEMENTS } from '../../constants/tools'
 import { ENDPOINTS } from '../../constants/endpoints'
 import { ROUTES } from '../../constants'
@@ -159,7 +160,7 @@ export default function TextForm(props) {
     const [activeTab, setActiveTab] = useState(null)
     const [sidebarOpen, setSidebarOpen] = useState(true)
     const [settingsOpen, setSettingsOpen] = useState(false)
-    const [toolViewMode, setToolViewMode] = useState(() => localStorage.getItem('fmx_tool_view') || 'list')
+    const [toolViewMode, setToolViewMode] = useState(() => localStorage.getItem('fmx_tool_view') || 'grid')
     const [workspaceTabs, setWorkspaceTabs] = useState([])
     const [activeWorkspaceId, setActiveWorkspaceId] = useState(null)
     const [toolResults, setToolResults] = useState({})  // keyed by tab ID, not tool ID
@@ -241,6 +242,30 @@ export default function TextForm(props) {
     const [deleteHistoryEntry] = useDeleteHistoryEntryMutation()
     const [clearServerHistory] = useClearHistoryMutation()
 
+    // ── UI Settings (tool_view + panel sizes synced to server) ──
+    const { data: uiSettings } = useGetUiSettingsQuery(undefined, { skip: !accessToken })
+    const [updateUiSettings] = useUpdateUiSettingsMutation()
+    const uiSettingsHydrated = useRef(false)
+
+    // Hydrate tool_view and panel sizes from server on login
+    useEffect(() => {
+        if (uiSettings && !uiSettingsHydrated.current) {
+            uiSettingsHydrated.current = true
+            if (uiSettings.tool_view) {
+                setToolViewMode(uiSettings.tool_view)
+                localStorage.setItem('fmx_tool_view', uiSettings.tool_view)
+            }
+            const ps = uiSettings.panel_sizes || {}
+            if (ps.fmx_sidebar_w) { localStorage.setItem('fmx_sidebar_w', String(ps.fmx_sidebar_w)); sidebarResize.setSize(Number(ps.fmx_sidebar_w)) }
+            if (ps.fmx_split_pct) { localStorage.setItem('fmx_split_pct', String(ps.fmx_split_pct)); splitResize.setSize(Number(ps.fmx_split_pct)) }
+            if (ps.fmx_bottom_h) { localStorage.setItem('fmx_bottom_h', String(ps.fmx_bottom_h)); bottomResize.setSize(Number(ps.fmx_bottom_h)) }
+        }
+    }, [uiSettings]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        if (!accessToken) uiSettingsHydrated.current = false
+    }, [accessToken])
+
     // Resizable panels
     const splitRef = useRef(null)
     const gutterRef = useRef(null)
@@ -248,6 +273,26 @@ export default function TextForm(props) {
     const sidebarResize = useResize('horizontal', 240, { min: 160, max: 480, storageKey: 'fmx_sidebar_w' })
     const splitResize = useResize('horizontal', 50, { min: 20, max: 80, storageKey: 'fmx_split_pct', unit: 'percent', containerRef: splitRef })
     const bottomResize = useResize('vertical', 200, { min: 80, max: 500, storageKey: 'fmx_bottom_h' })
+
+    // Sync panel sizes to server when authenticated (debounced)
+    const panelSizeSyncTimer = useRef(null)
+    const syncPanelSizes = useCallback((updates) => {
+        if (!accessToken) return
+        clearTimeout(panelSizeSyncTimer.current)
+        panelSizeSyncTimer.current = setTimeout(() => {
+            updateUiSettings({ panel_sizes: updates }).unwrap().catch(() => {})
+        }, 800)
+    }, [accessToken, updateUiSettings])
+
+    // Watch panel sizes and sync to server
+    useEffect(() => {
+        if (!accessToken || !uiSettingsHydrated.current) return
+        syncPanelSizes({
+            fmx_sidebar_w: sidebarResize.size,
+            fmx_split_pct: splitResize.size,
+            fmx_bottom_h: bottomResize.size,
+        })
+    }, [sidebarResize.size, splitResize.size, bottomResize.size]) // eslint-disable-line react-hooks/exhaustive-deps
 
     // Set default tab from persona
     useEffect(() => {
@@ -814,7 +859,7 @@ export default function TextForm(props) {
                             <>
                                 <button
                                     className={`tu-sidebar-header-btn${toolViewMode === 'list' ? ' tu-sidebar-header-btn--active' : ''}`}
-                                    onClick={() => { setToolViewMode('list'); localStorage.setItem('fmx_tool_view', 'list') }}
+                                    onClick={() => { setToolViewMode('list'); localStorage.setItem('fmx_tool_view', 'list'); if (accessToken) updateUiSettings({ tool_view: 'list' }).unwrap().catch(() => {}) }}
                                     title="List view"
                                 >
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -824,7 +869,7 @@ export default function TextForm(props) {
                                 </button>
                                 <button
                                     className={`tu-sidebar-header-btn${toolViewMode === 'grid' ? ' tu-sidebar-header-btn--active' : ''}`}
-                                    onClick={() => { setToolViewMode('grid'); localStorage.setItem('fmx_tool_view', 'grid') }}
+                                    onClick={() => { setToolViewMode('grid'); localStorage.setItem('fmx_tool_view', 'grid'); if (accessToken) updateUiSettings({ tool_view: 'grid' }).unwrap().catch(() => {}) }}
                                     title="Grid view"
                                 >
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

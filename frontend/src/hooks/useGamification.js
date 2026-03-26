@@ -1,8 +1,13 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
-import { useGetGamificationQuery, useUpdateGamificationMutation, useUpdatePreferencesMutation, useGetPreferencesQuery } from '../store/api/userDataApi'
+import {
+  useGetGamificationQuery, useUpdateGamificationMutation,
+  useUpdatePreferencesMutation, useGetPreferencesQuery,
+  useGetFavoritesQuery, useAddFavoriteMutation, useRemoveFavoriteMutation,
+} from '../store/api/userDataApi'
 import { TOOLS, ACHIEVEMENTS, QUEST_TEMPLATES, LEVELS } from '../constants/tools'
 
+// localStorage is a read-cache for pre-auth display speed only — never the source of truth.
 const STORAGE_KEY = 'fmx_gamification'
 
 // Pre-compute static tool ID sets (TOOLS never changes)
@@ -38,7 +43,8 @@ function getLevel(xp) {
   return lvl
 }
 
-/** Convert API response (flat) to hook state shape (nested). */
+/** Convert API response (flat) to hook state shape (nested).
+ *  Note: favorites are NOT included here — they load from GET /user/favorites. */
 function apiToState(api) {
   return {
     persona: null, // persona is in preferences, not gamification
@@ -49,7 +55,6 @@ function apiToState(api) {
     xp: api.xp || 0,
     streak: { current: api.streak_current || 0, lastDate: api.streak_last_date || null },
     achievements: api.achievements || [],
-    favorites: api.favorites || [],
     dailyQuest: {
       id: api.daily_quest_id || null,
       date: api.daily_quest_date || null,
@@ -60,7 +65,8 @@ function apiToState(api) {
   }
 }
 
-/** Convert hook state (nested) to API payload (flat). */
+/** Convert hook state (nested) to API payload (flat).
+ *  favorites are excluded — managed via dedicated /user/favorites endpoint. */
 function stateToApi(s) {
   return {
     xp: s.xp,
@@ -71,7 +77,6 @@ function stateToApi(s) {
     tools_used: s.toolsUsed,
     discovered_tools: s.discoveredTools,
     achievements: s.achievements,
-    favorites: s.favorites,
     saved_pipelines: s.savedPipelines,
     completed_quests: s.completedQuests,
     daily_quest_id: s.dailyQuest.id,
@@ -89,7 +94,7 @@ const DEFAULT_STATE = {
   xp: 0,
   streak: { current: 0, lastDate: null },
   achievements: [],
-  favorites: [],
+  favorites: [], // populated from GET /user/favorites when authenticated
   dailyQuest: { id: null, date: null, completed: false },
   savedPipelines: [],
   completedQuests: [],
@@ -111,20 +116,22 @@ export default function useGamification() {
   const accessToken = useSelector((s) => s.auth.accessToken)
   const isAuthenticated = !!accessToken
 
-  // RTK Query — fetch gamification + preferences from DB when authenticated
+  // RTK Query — fetch gamification + preferences + favorites from DB when authenticated
   const { data: dbGamification } = useGetGamificationQuery(undefined, { skip: !isAuthenticated })
   const { data: dbPrefs } = useGetPreferencesQuery(undefined, { skip: !isAuthenticated })
+  const { data: dbFavorites } = useGetFavoritesQuery(undefined, { skip: !isAuthenticated })
   const [syncToDb] = useUpdateGamificationMutation()
   const [syncPrefs] = useUpdatePreferencesMutation()
+  const [apiAddFavorite] = useAddFavoriteMutation()
+  const [apiRemoveFavorite] = useRemoveFavoriteMutation()
 
-  // Hydrate from DB on first fetch (merge DB data over localStorage)
+  // Hydrate from DB on first fetch (DB is authoritative; localStorage was read-only pre-auth cache)
   useEffect(() => {
     if (dbGamification && !hydrated.current) {
       hydrated.current = true
       const dbState = apiToState(dbGamification)
       setState(prev => {
         const merged = { ...prev, ...dbState, sessionOps: prev.sessionOps }
-        // Persona comes from preferences endpoint
         if (dbPrefs) {
           merged.persona = dbPrefs.persona || prev.persona
         }
@@ -133,19 +140,24 @@ export default function useGamification() {
     }
   }, [dbGamification, dbPrefs])
 
+  // Hydrate favorites from dedicated endpoint
+  useEffect(() => {
+    if (dbFavorites) {
+      const ids = dbFavorites.favorites.map(f => f.tool_id)
+      setState(prev => ({ ...prev, favorites: ids }))
+    }
+  }, [dbFavorites])
+
   // Reset hydration flag on logout
   useEffect(() => {
     if (!isAuthenticated) hydrated.current = false
   }, [isAuthenticated])
 
-  // Persist to localStorage + DB on state change (debounced)
+  // Sync to DB on state change (debounced). localStorage is NOT written — DB is source of truth.
   useEffect(() => {
+    if (!isAuthenticated) return
     const timer = setTimeout(() => {
-      const { sessionOps, ...persistable } = state
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(persistable))
-      if (isAuthenticated) {
-        syncToDb(stateToApi(state)).unwrap().catch(() => {})
-      }
+      syncToDb(stateToApi(state)).unwrap().catch(() => {})
     }, 500)
     return () => clearTimeout(timer)
   }, [state, isAuthenticated, syncToDb])
@@ -260,12 +272,17 @@ export default function useGamification() {
 
   const toggleFavorite = useCallback((toolId) => {
     setState(prev => {
-      const favorites = prev.favorites.includes(toolId)
+      const isFav = prev.favorites.includes(toolId)
+      if (isAuthenticated) {
+        if (isFav) apiRemoveFavorite(toolId).unwrap().catch(() => {})
+        else apiAddFavorite(toolId).unwrap().catch(() => {})
+      }
+      const favorites = isFav
         ? prev.favorites.filter(id => id !== toolId)
         : [...prev.favorites, toolId]
       return { ...prev, favorites }
     })
-  }, [])
+  }, [isAuthenticated, apiAddFavorite, apiRemoveFavorite])
 
   const setPersona = useCallback((persona) => {
     setState(prev => ({ ...prev, persona }))

@@ -1,5 +1,7 @@
-import { useEffect, useCallback, useState, useMemo } from 'react'
+import { useEffect, useCallback, useState, useMemo, useRef } from 'react'
+import { useSelector } from 'react-redux'
 import { TOOLS } from '../constants/tools'
+import { useGetUiSettingsQuery, useUpdateUiSettingsMutation } from '../store/api/userDataApi'
 
 /* ═══════════════════════════════════════════════════════
    useKeyboardShortcuts — Customizable power-user hotkeys
@@ -149,6 +151,30 @@ export default function useKeyboardShortcuts(actions) {
     const [shortcutsOpen, setShortcutsOpen] = useState(false)
     const [overrides, setOverrides] = useState(loadCustomBindings)
 
+    const accessToken = useSelector((s) => s.auth.accessToken)
+    const isAuthenticated = !!accessToken
+    const hydrated = useRef(false)
+
+    const { data: uiSettings } = useGetUiSettingsQuery(undefined, { skip: !isAuthenticated })
+    const [updateUiSettings] = useUpdateUiSettingsMutation()
+
+    // Hydrate keybinding overrides from DB on first fetch
+    useEffect(() => {
+        if (uiSettings && !hydrated.current) {
+            hydrated.current = true
+            const dbBindings = uiSettings.keybindings || {}
+            if (Object.keys(dbBindings).length > 0) {
+                setOverrides(dbBindings)
+                saveCustomBindings(dbBindings)
+            }
+        }
+    }, [uiSettings])
+
+    // Reset hydration flag on logout
+    useEffect(() => {
+        if (!isAuthenticated) hydrated.current = false
+    }, [isAuthenticated])
+
     const groups = useMemo(
         () => mergeBindings(DEFAULT_SHORTCUT_GROUPS, overrides),
         [overrides]
@@ -159,10 +185,9 @@ export default function useKeyboardShortcuts(actions) {
         [groups]
     )
 
-    // Persist override for a single shortcut
+    // Persist override for a single shortcut (localStorage + DB when authenticated)
     const updateBinding = useCallback((id, binding) => {
         setOverrides(prev => {
-            // Find the default to compare
             const defaultSc = DEFAULT_SHORTCUT_GROUPS
                 .flatMap(g => g.shortcuts)
                 .find(s => s.id === id)
@@ -185,23 +210,32 @@ export default function useKeyboardShortcuts(actions) {
                 }
             }
             saveCustomBindings(next)
+            if (isAuthenticated) {
+                updateUiSettings({ keybindings: next }).unwrap().catch(() => {})
+            }
             return next
         })
-    }, [])
+    }, [isAuthenticated, updateUiSettings])
 
     const resetAll = useCallback(() => {
         setOverrides({})
         saveCustomBindings({})
-    }, [])
+        if (isAuthenticated) {
+            updateUiSettings({ keybindings: {} }).unwrap().catch(() => {})
+        }
+    }, [isAuthenticated, updateUiSettings])
 
     const resetOne = useCallback((id) => {
         setOverrides(prev => {
             const next = { ...prev }
             delete next[id]
             saveCustomBindings(next)
+            if (isAuthenticated) {
+                updateUiSettings({ keybindings: next }).unwrap().catch(() => {})
+            }
             return next
         })
-    }, [])
+    }, [isAuthenticated, updateUiSettings])
 
     // Check if a shortcut has been customized
     const isCustomized = useCallback((id) => id in overrides, [overrides])
