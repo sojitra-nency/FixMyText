@@ -50,6 +50,9 @@ services:
     container_name: fixmytext-migrate-dev
     restart: "no"
     command: ["alembic", "upgrade", "head"]
+    volumes:
+      - ./backend:/app      # Dockerfile.dev doesn't COPY source; mount it so alembic.ini is found
+      - /app/.venv          # keep the built venv from the image
     env_file:
       - ./backend/.env
     environment:
