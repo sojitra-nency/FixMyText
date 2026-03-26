@@ -75,7 +75,7 @@ const ICONS = {
   meta_desc:     <svg {...p}><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h10M7 11h10M7 15h6"/></svg>,
   blog_outline:  <svg {...p}><path d="M4 6h16M4 10h16M8 14h12M8 18h12"/><circle cx="4" cy="14" r="1" fill="currentColor" stroke="none"/><circle cx="4" cy="18" r="1" fill="currentColor" stroke="none"/></svg>,
   keywords:      <svg {...p}><circle cx="12" cy="10" r="3"/><path d="M12 13v8"/><path d="M9 18h6"/></svg>,
-  sentiment:     <svg {...p}><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>,
+  sentiment:     <svg {...p}><path d="M12 2v4M4.93 4.93l2.83 2.83M2 12h4M4.93 19.07l2.83-2.83"/><circle cx="12" cy="12" r="8"/><path d="M12 12l4-4"/></svg>,
   gen_title:     <svg {...p}><path d="M4 6h16M4 12h12"/><path d="M17 16l3 3-3 3"/></svg>,
   refactor_prompt:<svg {...p}><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/><line x1="14" y1="4" x2="10" y2="20"/></svg>,
 
@@ -84,6 +84,9 @@ const ICONS = {
   change_tone:   <svg {...p}><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>,
   translate:     <svg {...p}><path d="M5 8h8M9 4v4"/><path d="M6 12c0 3 3 6 6 6"/><path d="M14 10l3 8 3-8"/><path d="M15 16h4"/></svg>,
   transliterate: <svg {...p}><path d="M4 6h7M7.5 6v10"/><path d="M14 8l3 8 3-8"/><path d="M15 14h4"/></svg>,
+
+  // ── Emoji ──
+  emojify:       <svg {...p}><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="9" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="9" r="1.5" fill="currentColor" stroke="none"/></svg>,
 
   // ── Compare & Generate ──
   compare:       <svg {...p}><path d="M8 3v18M16 3v18"/><path d="M3 8l5-5 5 5"/><path d="M11 16l5 5 5-5"/></svg>,

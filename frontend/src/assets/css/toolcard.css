@@ -233,17 +233,19 @@
   flex-shrink: 0;
 }
 
-/* VSCode-style icon colors (subtle, no background) */
-.tu-titem-icon--violet  { color: var(--violet); }
-.tu-titem-icon--slate   { color: #848484; }
-.tu-titem-icon--teal    { color: var(--teal); }
-.tu-titem-icon--indigo  { color: var(--indigo); }
-.tu-titem-icon--gray    { color: #848484; }
-.tu-titem-icon--pink    { color: var(--violet); }
-.tu-titem-icon--purple  { color: var(--violet); }
-.tu-titem-icon--amber   { color: var(--amber); }
-.tu-titem-icon--emerald { color: var(--emerald); }
-.tu-titem-icon--rose    { color: var(--rose); }
+/* VSCode-style icon colors (subtle, no background) — one per tool group */
+.tu-titem-icon--violet  { color: var(--violet); }  /* case transform */
+.tu-titem-icon--blush   { color: #ded2d2; }         /* whitespace */
+.tu-titem-icon--teal    { color: var(--teal); }     /* lines & sort */
+.tu-titem-icon--indigo  { color: var(--indigo); }   /* encoding */
+.tu-titem-icon--emerald { color: var(--emerald); }   /* hashing */
+.tu-titem-icon--green    { color: #bbdda0; }         /* developer tools */
+.tu-titem-icon--pink    { color: #D16D9E; }         /* ai writing */
+.tu-titem-icon--orange  { color: var(--orange); }   /* ai content */
+.tu-titem-icon--skyblue { color: #9CDCFE; }         /* language */
+.tu-titem-icon--amber   { color: var(--amber); }    /* generate */
+.tu-titem-icon--purple  { color: #B267E6; }         /* compare */
+.tu-titem-icon--rose    { color: var(--rose); }     /* utility */
 
 /* Name */
 .tu-titem-name {
